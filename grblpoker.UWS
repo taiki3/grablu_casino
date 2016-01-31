@@ -1,0 +1,32 @@
+OPTION EXPLICIT
+
+//操作対象のウィンドウ情報取得
+DIM id
+DIM w
+DIM x
+DIM y
+id = GETID("グランブルーファンタジー[ChromeApps版]")
+w = STATUS(id, ST_WIDTH) // widthを返す
+x = STATUS(id, ST_X) // X座標を返す
+y = STATUS(id, ST_Y) // Y座標を返す
+
+//ゲームモードの判定
+DIM gmode = ReadIni("mode","gmode")
+SELECT gmode
+	CASE 0 //カードを触るモード
+		DIM numofcard = ReadIni("select","numofcard")
+		DIM card[numofcard-1]
+		DIM i
+		FOR i = 0 TO numofcard - 1	//残すカードの選択
+			card[i] = ReadIni("select","card" + (i+1))
+			BTN(LEFT, CLICK, x + w / 2 + (card[i] - 3) * 55, y + 260, 0)
+		NEXT
+		SLEEP (0)	//たぶん無くても動く
+		//BTN(LEFT, CLICK, x + w / 2 , y + 400, 0) //OKボタンのクリック
+	CASE 1 //2択操作モード
+		DIM yesno = ReadIni("boolian","yesno")
+		//yesno = 0 でNO/HIGH, yesno = 1 でYES/LOW
+		BTN(LEFT, CLICK, x + w / 2 + (yesno * 100 - 50), y + 400, 0)
+	CASE 2 //1択操作モード
+		BTN(LEFT, CLICK, x + w / 2 , y + 400, 0)
+SELEND
