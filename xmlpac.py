@@ -1,3 +1,9 @@
+import binascii as b2a
+import xml.etree.ElementTree as ET
+import os
+import sys
+import json
+
 def xmlToPacket(filen):
     tree = ET.parse(filen)
     pacs = [u for u in tree.findall("packet")]
@@ -17,6 +23,4 @@ def fieldToValue(fields):
 
 def decodeValue(values):
     decoded = [json.loads(deco.decode('utf-8')) for deco in values]
-    return decoded    tree = Et.Parse(filen)
-    pacs = [u for u in tree tree.findall("packet")]
-    return pacs
+    return decoded
