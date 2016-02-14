@@ -4,6 +4,8 @@ import random
 import time
 import sys
 import winxpgui
+import win32api
+import win32con
 from ctypes import *
 user32 = windll.user32
 
@@ -63,26 +65,6 @@ def kbd(keycode):
     sleep(0.2)
     user32.keybd_event(keycode,0,0x2,0)
 
-#ウィンドウ表示
-#width : ウィンドウ横幅
-#height : ウィンドウ縦幅
-#name : ウィンドウタイトル
-def winshow(width,height,name = "main"):
-    zr = np.zeros((width,height,3),np.uint8)
-    cv2.imshow(name,zr)
-
-#ウィンドウを全て閉じる
-def winclose():
-    cv2.destroyAllWindows()
-
-#ウィンドウ上でキー入力があったか
-#key : opencvのキーコード 27がesc
-#wait : 待機秒　0が無限待ち　*ミリ秒指定不可
-def getkeystate(key,wait = 1):
-    if(cv2.waitKey(wait)==key):
-        return(True)
-    else:
-        return(False)
 
 #処理待機
 #wait : ミリ秒指定可
@@ -92,10 +74,39 @@ def sleep(wait):
 #getid - EnumWindows用コールバック関数
 def proc(hwnd,ar):
     title = winxpgui.GetWindowText(hwnd)
+    #print title
+    #test,enco = conv_encoding(title)
+    #print "title:"+title.decode('shift_jis').encode('utf-8')
+    #print "test:"+test
+    #print "enco:"+enco
+    #win32api.MessageBox(0, title, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
+    #title.decode('utf-8').encode('iso-2022-jp')
+    #title.decode('iso-2022-jp').encode('utf-8')
+    #print simple_chardet(title)
+    #win32api.MessageBox(0, title, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
     if ar[0] in title:
         #print (hwnd, title)
         ar[1].append(hwnd)
     return 1
+
+def conv_encoding(data):
+    lookup = ('utf_8', 'euc_jp', 'euc_jis_2004', 'euc_jisx0213',
+            'shift_jis', 'shift_jis_2004','shift_jisx0213',
+            'iso2022jp', 'iso2022_jp_1', 'iso2022_jp_2', 'iso2022_jp_3',
+            'iso2022_jp_ext','latin_1', 'ascii')
+    encode = None
+    for encoding in lookup:
+        try:
+            data = data.decode(encoding)
+            encode = encoding
+            break
+        except:
+            pass
+    if isinstance(data, unicode):
+        return data,encode
+    else:
+        raise LookupError
+
 
 #titleをウィンドウタイトルに含むウィンドウのウィンドウハンドルを返します
 #title : 検索に使うタイトル
@@ -103,9 +114,9 @@ def proc(hwnd,ar):
 def getid(title,n = 0):
     hwnds = []
     try:
-    	winxpgui.EnumWindows(proc,[title,hwnds])
+        winxpgui.EnumWindows(proc,[title,hwnds])
     except:
-    	raise
+        raise
     return hwnds[n]
 
 

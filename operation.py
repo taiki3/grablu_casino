@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import pyws as pyws
 import winxpgui
+import win32api
+import win32con
 
 def clickcard(changeflag):
     windowinfo = getwindowinfo()
@@ -46,20 +48,27 @@ def clickcenter():
 
 def getwindowinfo():
     try:
-        hwnd = pyws.getid("グランブルーファンタジー[ChromeApps版]",0)
+        #title = "グランブルーファンタジー[ChromeApps版]"
+        title = "ChromeApps"
+        #win32api.MessageBox(0, title, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
+        #temp = unicode(title, 'shift_jis')
+        #win32api.MessageBox(0, temp, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
+        hwnd = pyws.getid(title,0)
     except:
         print("no window")
         return(False)
-    print(hwnd)
+    #print(hwnd)
     rect = winxpgui.GetWindowRect(hwnd)
     size = winxpgui.GetClientRect(hwnd)
     place = winxpgui.GetWindowPlacement(hwnd)
+    print place
     if place[1]!=1:
         return(False)
     print(size)
     #if size[2]
     x = rect[0]+size[2]/2
     y = rect[1]
+    sgain = False
     if size[2] == 350:
         sgain = 1
     elif size[2] == 510:
@@ -73,15 +82,17 @@ def main():
     #test 1
     #changeflag=(1,1,1,1,1)
     #clickcard(changeflag)
-    
+
     #test 2
+    #print "バッテリメーター".decode('utf-8').encode('iso-2022-jp')
+    #"�o�b�e�� ���[�^�["
     clickcenter()
-    
+
     #test 3
     #clickleft()
-    
+
     #test 4
     #clickright()
-    
+
 if __name__ == "__main__":
     main()

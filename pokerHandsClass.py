@@ -6,11 +6,17 @@ class Card:
         self.suit = suit
         self.num = num
 
+    def getCard(self):
+        return self
+
     def showSuit(self):
-        return self.suit
+        return str(self.suit)
 
     def showNum(self):
-        return self.num
+        return str(self.num)
+
+    def showCard(self):
+        return str( self.suit+str(self.num) )
 
     def setCard(self,suit,num):
         self.suit = suit
@@ -26,13 +32,16 @@ class Hands:
     def __init__(self,cards):
         assert type(cards) == list
         if( len(cards)== 5 ):
-            self.cardList = cards
+            listHoge = []
+            for i in [0,1,2,3,4]:
+                listHoge.append( Card(cards[i][0],cards[i][1]) )
+            self.cardList = listHoge
             self.handPattern = False
             self.holdPos = False
         else:
             return False
 
-    def shoHoldHandPos(self,isRedoJudge):
+    def showHoldHandPos(self,isRedoJudge):
         # isRedoJudge ジャッジ関数を呼び直す？
         # return list
         if(isRedoJudge):
@@ -57,53 +66,56 @@ class Hands:
         else:
             pass
 
-        if(handPattern==1):
+        if(self.handPattern==1):
             return  "+ロイヤルストレートフラッシュ+"
-        elif(handPattern==2):
+        elif(self.handPattern==2):
             return "+ファイブカード+"
-        elif(handPattern==3):
+        elif(self.handPattern==3):
             return "+ストレートフラッシュ+"
-        elif(handPattern==4):
+        elif(self.handPattern==4):
             return "+フォーカード+"
-        elif(handPattern==5):
+        elif(self.handPattern==5):
             return "+フルハウス+"
-        elif(handPattern==6):
+        elif(self.handPattern==6):
             return "+ロイヤル4枚残し+"
-        elif(handPattern==7):
+        elif(self.handPattern==7):
             return "+フラッシュ+"
-        elif(handPattern==8):
+        elif(self.handPattern==8):
             return "+ストレート+"
-        elif(handPattern==9):
+        elif(self.handPattern==9):
             return "+3カード+"
-        elif(handPattern==10):
+        elif(self.handPattern==10):
             return "+2ペア+"
-        elif(handPattern==11):
+        elif(self.handPattern==11):
             return "+ストレートフラッシュ4枚残し+"
-        elif(handPattern==12):
+        elif(self.handPattern==12):
             return "+ロイヤル3枚残し+"
-        elif(handPattern==13):
+        elif(self.handPattern==13):
             return "+ストレート4枚残し+"
-        elif(handPattern==14):
+        elif(self.handPattern==14):
             return "+1ペア+"
-        elif(handPattern==15):
+        elif(self.handPattern==15):
             return "+ストフラ3枚残し+"
-        elif(handPattern==16):
+        elif(self.handPattern==16):
             return "+ロイヤル2枚残し+"
-        elif(handPattern==17):
+        elif(self.handPattern==17):
             return "+ストレート3枚残し+"
-        elif(handPattern==18):
+        elif(self.handPattern==18):
             return "+フラッシュ4枚残し+"
-        elif(handPattern==19):
+        elif(self.handPattern==19):
             return "+ストフラ2枚残し+"
-        elif(handPattern==20):
+        elif(self.handPattern==20):
             return "+ストレート2枚残し+"
-        elif(handPattern==21):
+        elif(self.handPattern==21):
             return "+フラッシュ3枚残し+"
         else:
             return "+全チェンジ+"
 
     def showCards(self):
-        return self.cardList
+        listHoge = []
+        for i in [0,1,2,3,4]:
+            listHoge.append( self.cardList[i].suit+str(self.cardList[i].num) )
+        return listHoge
 
     def isExistCard(self,card):
         for v in self.cardList:
@@ -406,6 +418,29 @@ class Hands:
 
         #0 全チェンジ
         return(0,(False,False,False,False,False))
+
+class DoubleUp:
+    def __init__(self, card1, card2):
+        self.card1 = card1
+        self.card2 = card2
+        self.HiLow = False
+        self.payMedal = False
+
+    def setPayMedal(self, num):
+        self.payMedal = num
+
+    def judgeHiLow(self, temp):
+        if(temp == 1):
+            self.HiLow = "Low"
+        elif(temp > 8):
+            self.HiLow = "Low"
+        elif(temp <= 8):
+            self.HiLow = "High"
+
+        return self.HiLow
+
+    def isNextDoubleUp(self):
+        return True
 
 class Game():
     def __init__(self,hands,status=0):
