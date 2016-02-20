@@ -244,7 +244,7 @@ class Hands:
                     minStraightCardNum = x
 
         if( countStraightCard13_1 >= keepNum ):
-            if( self.posExistJoker() ):
+            if( self.isExistJoker() ):
                 holdCardList[self.posExistJoker()] = True
 
             overLapList = []
@@ -257,7 +257,7 @@ class Hands:
 
             return holdCardList
         elif( countStraightCard >= keepNum ):
-            if( self.posExistJoker() ):
+            if( self.isExistJoker() ):
                 holdCardList[self.posExistJoker()] = True
 
             overLapList = []
@@ -281,8 +281,8 @@ class Hands:
         maxCountSuitKey = max(countSuit.items(), key=lambda x:x[1])[0]
 
         if(self.isExistJoker()):
-            if( self.posExistJoker() ):
-                holdCardList[self.posExistJoker()] = True
+            holdCardList[self.posExistJoker()] = True
+
             if( countSuit[maxCountSuitKey] >= keepNum-1 ):
                 for i in xrange(len(self.cardList)):
                     if( maxCountSuitKey == self.cardList[i].suit ):
@@ -450,11 +450,11 @@ class Game():
         return self.library
 
 if __name__ == '__main__':
-    cards = [('h', 3), \
-            ('s', 9), \
-            ('h', 3), \
-            ('s', 5), \
-            ('d', 5)]
+    cards = [('99', 99), \
+            ('c', 1), \
+            ('d', 13), \
+            ('h', 11), \
+            ('d', 8)]
 
     print cards
     hands = Hands(cards)
