@@ -5,7 +5,6 @@ from winpcapy import *
 import sys
 import string
 import platform
-import pcapTest
 import readPacketMain
 import win32api
 from win32con import *
