@@ -61,8 +61,6 @@ class Hands:
             handPattern,holdPos = self.judgeHand()
             self.handPattern = handPattern
             self.holdPos = holdPos
-        elif(not self.handPattern):
-            return False
         else:
             pass
 
@@ -202,6 +200,19 @@ class Hands:
         assert len(self.cardList) == len(holdCardList)
         for i in xrange(len(holdCardList)):
             if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(1)[0][0] ):
+                holdCardList[i] = True
+
+        if( holdCardList == [False,False,False,False,False] ):
+            return False
+        return holdCardList
+
+    def holdHandFromTwoPare(self):
+        holdCardList = [False,False,False,False,False]
+        assert len(self.cardList) == len(holdCardList)
+        for i in xrange(len(holdCardList)):
+            if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(1)[0][0] ):
+                holdCardList[i] = True
+            if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(2)[1][0] ):
                 holdCardList[i] = True
 
         if( holdCardList == [False,False,False,False,False] ):
@@ -373,7 +384,7 @@ class Hands:
             pareDict = Counter( self.countNumFromHands() ).most_common(2)
             pareList = [pareDict[0][1],pareDict[1][1]]
             if( pareList[0]==2 and pareList[1]==2):
-                return(10, self.holdHandFromPare())
+                return(10, self.holdHandFromTwoPare())
 
         #11 ストレートフラッシュ4枚残し
         if( self.holdHandFromStraightFlash(4) ):
@@ -419,29 +430,6 @@ class Hands:
         #0 全チェンジ
         return(0,(False,False,False,False,False))
 
-class DoubleUp:
-    def __init__(self, card1, card2):
-        self.card1 = card1
-        self.card2 = card2
-        self.HiLow = False
-        self.payMedal = False
-
-    def setPayMedal(self, num):
-        self.payMedal = num
-
-    def judgeHiLow(self, temp):
-        if(temp == 1):
-            self.HiLow = "Low"
-        elif(temp > 8):
-            self.HiLow = "Low"
-        elif(temp <= 8):
-            self.HiLow = "High"
-
-        return self.HiLow
-
-    def isNextDoubleUp(self):
-        return True
-
 class Game():
     def __init__(self,hands,status=0):
         self.hands = hands
@@ -462,10 +450,14 @@ class Game():
         return self.library
 
 if __name__ == '__main__':
-    cards1 = [Card(i,1,v) for i,v in enumerate([1,13,4,2,8])]
-    cards2 = [Card(i,1,u) for i,u in enumerate([1,13,4,5,9])]
-    hands1 = Hands(cards1)
-    game1 = Game(hands1)
-    game1.changeHands(cards2)
-    for v in game1.showLibrary():
-        print(v.showSuit(),v.showNum())
+    cards = [('h', 3), \
+            ('s', 9), \
+            ('h', 3), \
+            ('s', 5), \
+            ('d', 5)]
+
+    print cards
+    hands = Hands(cards)
+    print hands.showCards()
+    print hands.showHoldHandPos(1)
+    print hands.showHandKeepingReason(0)

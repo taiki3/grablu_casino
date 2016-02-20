@@ -27,6 +27,7 @@ def click(x = -1,y = -1,wait = 0.2):
         sleep(wait)
         user32.mouse_event(0x4,0,0,0,0) #クリックを放す
         return(True)
+    '''
     else:
         #img座標に数値が入っていた場合
         if(g_img_x != -1 and g_img_y != -1):
@@ -39,7 +40,7 @@ def click(x = -1,y = -1,wait = 0.2):
             return(True)
         else:
             return(False)
-
+    '''
 
 #指定座標にカーソル移動
 #chkimg実行後に引数無しで実行した場合、img座標に移動
@@ -69,7 +70,9 @@ def kbd(keycode):
 #処理待機
 #wait : ミリ秒指定可
 def sleep(wait):
-    time.sleep(wait)
+    t = int(wait *1000)
+    win32api.Sleep(t)
+    #time.sleep(wait)
 
 #getid - EnumWindows用コールバック関数
 def proc(hwnd,ar):
@@ -88,25 +91,6 @@ def proc(hwnd,ar):
         #print (hwnd, title)
         ar[1].append(hwnd)
     return 1
-
-def conv_encoding(data):
-    lookup = ('utf_8', 'euc_jp', 'euc_jis_2004', 'euc_jisx0213',
-            'shift_jis', 'shift_jis_2004','shift_jisx0213',
-            'iso2022jp', 'iso2022_jp_1', 'iso2022_jp_2', 'iso2022_jp_3',
-            'iso2022_jp_ext','latin_1', 'ascii')
-    encode = None
-    for encoding in lookup:
-        try:
-            data = data.decode(encoding)
-            encode = encoding
-            break
-        except:
-            pass
-    if isinstance(data, unicode):
-        return data,encode
-    else:
-        raise LookupError
-
 
 #titleをウィンドウタイトルに含むウィンドウのウィンドウハンドルを返します
 #title : 検索に使うタイトル

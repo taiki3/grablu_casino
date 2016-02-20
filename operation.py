@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pyws as pyws
+import pyws
 import winxpgui
 import win32api
 import win32con
@@ -23,8 +23,8 @@ def clickleft():
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    pyws.mmv(int(x-50*sgain),int(y+400*sgain))#for test
-    #pyws.click(int(x-50*sgain),int(y+400*sgain),0)#use
+    #pyws.mmv(int(x-50*sgain),int(y+400*sgain))#for test
+    pyws.click(int(x-50*sgain),int(y+400*sgain),0)#use
 
 def clickright():
     windowinfo = getwindowinfo()
@@ -33,8 +33,8 @@ def clickright():
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    pyws.mmv(int(x+50*sgain),int(y+400*sgain))#for test
-    #pyws.click(int(x+50*sgain),int(y+400*sgain),0)#use
+    #pyws.mmv(int(x+50*sgain),int(y+400*sgain))#for test
+    pyws.click(int(x+50*sgain),int(y+400*sgain),0)#use
 
 def clickcenter():
     windowinfo = getwindowinfo()
@@ -43,8 +43,8 @@ def clickcenter():
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    pyws.mmv(int(x),int(y+400*sgain))#for test
-    #pyws.click(int(x),int(y+400*sgain),0)#use
+    #pyws.mmv(int(x),int(y+400*sgain))#for test
+    pyws.click(int(x),int(y+400*sgain),0)#use
 
 def getwindowinfo():
     try:
@@ -61,10 +61,10 @@ def getwindowinfo():
     rect = winxpgui.GetWindowRect(hwnd)
     size = winxpgui.GetClientRect(hwnd)
     place = winxpgui.GetWindowPlacement(hwnd)
-    print place
+    #print place
     if place[1]!=1:
         return(False)
-    print(size)
+    #print(size)
     #if size[2]
     x = rect[0]+size[2]/2
     y = rect[1]
@@ -79,6 +79,7 @@ def getwindowinfo():
     return(windowinfo)
 
 def main():
+    pass
     #test 1
     #changeflag=(1,1,1,1,1)
     #clickcard(changeflag)
@@ -86,7 +87,7 @@ def main():
     #test 2
     #print "バッテリメーター".decode('utf-8').encode('iso-2022-jp')
     #"�o�b�e�� ���[�^�["
-    clickcenter()
+    #clickcenter()
 
     #test 3
     #clickleft()
