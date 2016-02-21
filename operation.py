@@ -1,71 +1,85 @@
 # -*- coding: utf-8 -*-
-import pyws
 import winxpgui
 import win32api
-import win32con
+import random
+from ctypes import windll
 
-def clickcard(changeflag):
-    windowinfo = getwindowinfo()
+def clickHigh():
+    clickLeft()
+
+def clickLow():
+    clickRight()
+
+def clickYes():
+    clickRight()
+
+def clickNo():
+    clickLeft()
+
+def clickStart():
+    clickCenter()
+
+def clickOK():
+    clickCenter()
+
+def sleepPlusRandom(wait):
+    waitTime = random.randrange(wait,wait+1)
+    win32api.Sleep(waitTime)
+
+def clickHoldCard(changeflag):
+    windowinfo = _getwindowinfo()
     if windowinfo == False:
         return(False)
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
     for i in range(0,5):
-        if changeflag[i] == 1:
-            pyws.click(int(x+(i-2)*55*sgain),int(y+260*sgain),0)
+        if changeflag[i] == True:
+            _click(int(x+(i-2)*55*sgain),int(y+260*sgain),0)
+
+    win32api.Sleep(200)
     return(True)
 
-def clickleft():
-    windowinfo = getwindowinfo()
+def clickLeft():
+    windowinfo = _getwindowinfo()
     if windowinfo == False:
         return(False)
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    #pyws.mmv(int(x-50*sgain),int(y+400*sgain))#for test
-    pyws.click(int(x-50*sgain),int(y+400*sgain),0)#use
+    _click(int(x-50*sgain),int(y+400*sgain),0)
 
-def clickright():
-    windowinfo = getwindowinfo()
+def clickRight():
+    windowinfo = _getwindowinfo()
     if windowinfo == False:
         return(False)
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    #pyws.mmv(int(x+50*sgain),int(y+400*sgain))#for test
-    pyws.click(int(x+50*sgain),int(y+400*sgain),0)#use
+    _click(int(x+50*sgain),int(y+400*sgain),0)
 
-def clickcenter():
-    windowinfo = getwindowinfo()
+def clickCenter():
+    windowinfo = _getwindowinfo()
     if windowinfo == False:
         return(False)
     x = windowinfo[0]
     y = windowinfo[1]
     sgain = windowinfo[2]
-    #pyws.mmv(int(x),int(y+400*sgain))#for test
-    pyws.click(int(x),int(y+400*sgain),0)#use
+    _click(int(x),int(y+400*sgain),0)
 
-def getwindowinfo():
+def _getwindowinfo():
     try:
         #title = "グランブルーファンタジー[ChromeApps版]"
         title = "ChromeApps"
-        #win32api.MessageBox(0, title, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
-        #temp = unicode(title, 'shift_jis')
-        #win32api.MessageBox(0, temp, u"てすと", win32con.MB_OK | win32con.MB_ICONINFORMATION)
-        hwnd = pyws.getid(title,0)
+        hwnd = _getid(title,0)
     except:
-        print("no window")
+        print(u"no window")
         return(False)
-    #print(hwnd)
     rect = winxpgui.GetWindowRect(hwnd)
     size = winxpgui.GetClientRect(hwnd)
     place = winxpgui.GetWindowPlacement(hwnd)
-    #print place
     if place[1]!=1:
         return(False)
-    #print(size)
-    #if size[2]
     x = rect[0]+size[2]/2
     y = rect[1]
     sgain = False
@@ -78,22 +92,32 @@ def getwindowinfo():
     windowinfo = (x, y, sgain)
     return(windowinfo)
 
-def main():
-    pass
-    #test 1
-    #changeflag=(1,1,1,1,1)
-    #clickcard(changeflag)
+def _click(x = -1,y = -1,wait = 200):
+    user32 = windll.user32
+    if(x != -1 and y != -1):
+        user32.SetCursorPos(x,y)
+        user32.mouse_event(0x2,0,0,0,0) #クリックする
+        win32api.Sleep(wait)
+        user32.mouse_event(0x4,0,0,0,0) #クリックを放す
+        return(True)
 
-    #test 2
-    #print "バッテリメーター".decode('utf-8').encode('iso-2022-jp')
-    #"�o�b�e�� ���[�^�["
-    #clickcenter()
+def _proc(hwnd,ar):
+    #getid - EnumWindows用コールバック関数
+    title = winxpgui.GetWindowText(hwnd)
+    if ar[0] in title:
+        ar[1].append(hwnd)
+    return 1
 
-    #test 3
-    #clickleft()
-
-    #test 4
-    #clickright()
+def _getid(title,n = 0):
+    #titleをウィンドウタイトルに含むウィンドウのウィンドウハンドルを返します
+    #title : 検索に使うタイトル
+    #n : 何番目のウィンドウハンドルを返すか
+    hwnds = []
+    try:
+        winxpgui.EnumWindows(_proc,[title,hwnds])
+    except:
+        raise
+    return hwnds[n]
 
 if __name__ == "__main__":
-    main()
+    pass

@@ -22,28 +22,21 @@ class Card:
         self.suit = suit
         self.num = num
 
-    def compareCard(self,cardB):
-        if self.num == cardB.num and self.suit == cardB.suit:
-            return True
-        else:
-            return False
-
 class Hands:
     def __init__(self,cards):
         assert type(cards) == list
         if( len(cards)== 5 ):
-            listHoge = []
+            cardList = []
             for i in [0,1,2,3,4]:
-                listHoge.append( Card(cards[i][0],cards[i][1]) )
-            self.cardList = listHoge
+                cardList.append( cards[i] )
+            self.cardList = cardList
             self.handPattern = False
             self.holdPos = False
         else:
             return False
 
     def showHoldHandPos(self,isRedoJudge):
-        # isRedoJudge ジャッジ関数を呼び直す？
-        # return list
+        # isRedoJudge ジャッジ関数を呼び直すか否か
         if(isRedoJudge):
             handPattern,holdPos = self.judgeHand()
             self.handPattern = handPattern
@@ -55,8 +48,7 @@ class Hands:
             return self.holdPos
 
     def showHandKeepingReason(self,isRedoJudge):
-        # isRedoJudge ジャッジ関数を呼び直す？
-        # return str
+        # isRedoJudge ジャッジ関数を呼び直すか否か
         if(isRedoJudge):
             handPattern,holdPos = self.judgeHand()
             self.handPattern = handPattern
@@ -65,64 +57,57 @@ class Hands:
             pass
 
         if(self.handPattern==1):
-            return  "+ロイヤルストレートフラッシュ+"
+            return u"+ロイヤルストレートフラッシュ+"
         elif(self.handPattern==2):
-            return "+ファイブカード+"
+            return u"+ファイブカード+"
         elif(self.handPattern==3):
-            return "+ストレートフラッシュ+"
+            return u"+ストレートフラッシュ+"
         elif(self.handPattern==4):
-            return "+フォーカード+"
+            return u"+フォーカード+"
         elif(self.handPattern==5):
-            return "+フルハウス+"
+            return u"+フルハウス+"
         elif(self.handPattern==6):
-            return "+ロイヤル4枚残し+"
+            return u"+ロイヤル4枚残し+"
         elif(self.handPattern==7):
-            return "+フラッシュ+"
+            return u"+フラッシュ+"
         elif(self.handPattern==8):
-            return "+ストレート+"
+            return u"+ストレート+"
         elif(self.handPattern==9):
-            return "+3カード+"
+            return u"+3カード+"
         elif(self.handPattern==10):
-            return "+2ペア+"
+            return u"+2ペア+"
         elif(self.handPattern==11):
-            return "+ストレートフラッシュ4枚残し+"
+            return u"+ストレートフラッシュ4枚残し+"
         elif(self.handPattern==12):
-            return "+ロイヤル3枚残し+"
+            return u"+ロイヤル3枚残し+"
         elif(self.handPattern==13):
-            return "+ストレート4枚残し+"
+            return u"+ストレート4枚残し+"
         elif(self.handPattern==14):
-            return "+1ペア+"
+            return u"+1ペア+"
         elif(self.handPattern==15):
-            return "+ストフラ3枚残し+"
+            return u"+ストフラ3枚残し+"
         elif(self.handPattern==16):
-            return "+ロイヤル2枚残し+"
+            return u"+ロイヤル2枚残し+"
         elif(self.handPattern==17):
-            return "+ストレート3枚残し+"
+            return u"+ストレート3枚残し+"
         elif(self.handPattern==18):
-            return "+フラッシュ4枚残し+"
+            return u"+フラッシュ4枚残し+"
         elif(self.handPattern==19):
-            return "+ストフラ2枚残し+"
+            return u"+ストフラ2枚残し+"
         elif(self.handPattern==20):
-            return "+ストレート2枚残し+"
+            return u"+ストレート2枚残し+"
         elif(self.handPattern==21):
-            return "+フラッシュ3枚残し+"
+            return u"+フラッシュ3枚残し+"
         else:
-            return "+全チェンジ+"
+            return u"+全チェンジ+"
 
     def showCards(self):
-        listHoge = []
+        cards= []
         for i in [0,1,2,3,4]:
-            listHoge.append( self.cardList[i].suit+str(self.cardList[i].num) )
-        return listHoge
+            cards.append( self.cardList[i].suit+str(self.cardList[i].num) )
+        return cards
 
-    def isExistCard(self,card):
-        for v in self.cardList:
-            if v.compareCard(card):
-                return True
-            else:
-                return False
-
-    def countSuitFromHands(self):
+    def _countSuitFromHands(self):
         ## ハンドにそのスートがいくつ含まれているか
         ### example
         # countList['s':1,'d':1,'c':2,'99':1]
@@ -134,7 +119,7 @@ class Hands:
                 countDict[card.suit] = 1
         return countDict
 
-    def countNumFromHands(self):
+    def _countNumFromHands(self):
         ## ハンドにその数字がいくつ含まれているか
         ### example
         # countList[12:1,2:1,3:2,99:1]
@@ -146,44 +131,44 @@ class Hands:
                 countDict[card.num] = 1
         return countDict
 
-    def isExistJoker(self):
+    def _isExistJoker(self):
         for card in self.cardList:
-            if (card.suit=='99' or card.num == 99):
+            if (card.suit==u'99' or card.num == 99):
                 return True
         else:
             return False
 
-    def posExistJoker(self):
+    def _posExistJoker(self):
         for i in xrange(len(self.cardList)):
-            if (self.cardList[i].suit=='99' or self.cardList[i].num == 99):
+            if (self.cardList[i].suit==u'99' or self.cardList[i].num == 99):
                 return i
         else:
             return False
 
-    def isPosJoker(self,pos):
+    def _isPosJoker(self,pos):
         #iの位置にjokerはいるか
-        if( self.cardList[pos].suit =='99' or self.cardList[pos].num == 99):
+        if( self.cardList[pos].suit ==u'99' or self.cardList[pos].num == 99):
             return True
         return False
 
-    def isExistSuit(self,suit):
+    def _isExistSuit(self,suit):
         for card in self.cardList:
             if (card.suit==suit):
                 return True
         else:
             return False
 
-    def isExistNum(self,num):
+    def _isExistNum(self,num):
         for card in self.cardList:
             if (card.num==num):
                 return True
         else:
             return False
 
-    def countFromStraightList(self,straitList):
+    def _countFromStraightList(self,straitList):
         #ハンドにリストの中のカードが何枚あるか
         countStraightCard = 0
-        if( self.isExistJoker() ):
+        if( self._isExistJoker() ):
             countStraightCard+=1
 
         overLapList = []
@@ -195,42 +180,42 @@ class Hands:
                     countStraightCard+=1
         return countStraightCard
 
-    def holdHandFromPare(self):
+    def _holdHandFromPare(self):
         holdCardList = [False,False,False,False,False]
         assert len(self.cardList) == len(holdCardList)
         for i in xrange(len(holdCardList)):
-            if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(1)[0][0] ):
+            if( self.cardList[i].num == Counter( self._countNumFromHands() ).most_common(1)[0][0] ):
                 holdCardList[i] = True
 
         if( holdCardList == [False,False,False,False,False] ):
             return False
         return holdCardList
 
-    def holdHandFromTwoPare(self):
+    def _holdHandFromTwoPare(self):
         holdCardList = [False,False,False,False,False]
         assert len(self.cardList) == len(holdCardList)
         for i in xrange(len(holdCardList)):
-            if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(1)[0][0] ):
+            if( self.cardList[i].num == Counter( self._countNumFromHands() ).most_common(1)[0][0] ):
                 holdCardList[i] = True
-            if( self.cardList[i].num == Counter( self.countNumFromHands() ).most_common(2)[1][0] ):
+            if( self.cardList[i].num == Counter( self._countNumFromHands() ).most_common(2)[1][0] ):
                 holdCardList[i] = True
 
         if( holdCardList == [False,False,False,False,False] ):
             return False
         return holdCardList
 
-    def holdHandFromStraight(self,keepNum):
+    def _holdHandFromStraight(self,keepNum):
         #keepNumはハンドを残す枚数
         #ストレートにリーチなら4枚残すので、keepNum=4
         minStraightCardNum = 0
         holdCardList = [False,False,False,False,False]
-        countStraightCard13_1 = self.countFromStraightList([10,11,12,13,1])
+        countStraightCard13_1 = self._countFromStraightList([10,11,12,13,1])
         for x in [1,2,3,4,5,6,7,8,9]:
-            countStraightCard = self.countFromStraightList(range(x,x+5))
+            countStraightCard = self._countFromStraightList(range(x,x+5))
             if( countStraightCard >= keepNum):
                 minStraightCardNum = x
         else:
-            countStraightCard = self.countFromStraightList(range(minStraightCardNum,minStraightCardNum+5))
+            countStraightCard = self._countFromStraightList(range(minStraightCardNum,minStraightCardNum+5))
 
         #print countStraightCard
         if( countStraightCard >= keepNum or countStraightCard13_1 >=keepNum):
@@ -238,14 +223,14 @@ class Hands:
             for x in [2,3,4,5,6,7,8,9,10,11]:
                 countLinkNum = 0
                 for i in xrange(keepNum):
-                    if( self.isExistNum(x+i) ):
+                    if( self._isExistNum(x+i) ):
                         countLinkNum+=1
                 if( countLinkNum == keepNum ):
                     minStraightCardNum = x
 
         if( countStraightCard13_1 >= keepNum ):
-            if( self.isExistJoker() ):
-                holdCardList[self.posExistJoker()] = True
+            if( self._isExistJoker() ):
+                holdCardList[self._posExistJoker()] = True
 
             overLapList = []
             for i in xrange(len(self.cardList)):
@@ -257,8 +242,8 @@ class Hands:
 
             return holdCardList
         elif( countStraightCard >= keepNum ):
-            if( self.isExistJoker() ):
-                holdCardList[self.posExistJoker()] = True
+            if( self._isExistJoker() ):
+                holdCardList[self._posExistJoker()] = True
 
             overLapList = []
             assert len(self.cardList) == len(holdCardList)
@@ -273,15 +258,15 @@ class Hands:
 
         return False
 
-    def holdHandFromFlash(self,keepNum):
+    def _holdHandFromFlash(self,keepNum):
         #keepNumはハンドを残す枚数
         #フラッシュにリーチなら4枚残すので、keepNum=4
         holdCardList = [False,False,False,False,False]
-        countSuit = self.countSuitFromHands()
+        countSuit = self._countSuitFromHands()
         maxCountSuitKey = max(countSuit.items(), key=lambda x:x[1])[0]
 
-        if(self.isExistJoker()):
-            holdCardList[self.posExistJoker()] = True
+        if(self._isExistJoker()):
+            holdCardList[self._posExistJoker()] = True
 
             if( countSuit[maxCountSuitKey] >= keepNum-1 ):
                 for i in xrange(len(self.cardList)):
@@ -299,19 +284,19 @@ class Hands:
 
         return False
 
-    def holdHandFromStraightFlash(self,keepNum):
+    def _holdHandFromStraightFlash(self,keepNum):
         #keepNumはハンドを残す枚数
         #ストフラにリーチなら4枚残すので、keepNum=4
-        if(not self.holdHandFromStraight(keepNum)):
+        if(not self._holdHandFromStraight(keepNum)):
             return False
 
-        holdCardList = self.holdHandFromStraight(keepNum)
+        holdCardList = self._holdHandFromStraight(keepNum)
 
-        countSuit = self.countSuitFromHands()
+        countSuit = self._countSuitFromHands()
         maxCountSuit =  Counter(countSuit).most_common(1)[0][0]
         for i in xrange(len(holdCardList)):
             if( holdCardList[i] and \
-              ( not self.isPosJoker(i) ) and\
+              ( not self._isPosJoker(i) ) and\
               ( self.cardList[i].suit != maxCountSuit )):
                 return False
 
@@ -322,31 +307,31 @@ class Hands:
         holdCardList = [False,False,False,False,False]
 
         #1 ロイヤルストレートフラッシュ
-        if( (self.countFromStraightList([10,11,12,13,1])==5) and self.holdHandFromFlash(5) ):
+        if( (self._countFromStraightList([10,11,12,13,1])==5) and self._holdHandFromFlash(5) ):
             return(1,(True,True,True,True,True))
 
         #2 ファイブカード
-        if( self.isExistJoker() and Counter(self.countNumFromHands()).most_common(1)[0][1] == 4):
+        if( self._isExistJoker() and Counter(self._countNumFromHands()).most_common(1)[0][1] == 4):
             return(2,(True,True,True,True,True))
 
         #3 ストレートフラッシュ
-        if( self.holdHandFromStraightFlash(5) ):
+        if( self._holdHandFromStraightFlash(5) ):
             return(3,(True,True,True,True,True))
 
         #4 フォーカード
-        if( self.isExistJoker() ):
-            if( Counter( self.countNumFromHands() ).most_common(1)[0][1] == 3):
-                holdCardList = self.holdHandFromPare()
-                holdCardList[self.posExistJoker()] = True
+        if( self._isExistJoker() ):
+            if( Counter( self._countNumFromHands() ).most_common(1)[0][1] == 3):
+                holdCardList = self._holdHandFromPare()
+                holdCardList[self._posExistJoker()] = True
                 return(4, holdCardList)
         else:
-            if( Counter( self.countNumFromHands() ).most_common(1)[0][1] == 4):
-                return(4, self.holdHandFromPare())
+            if( Counter( self._countNumFromHands() ).most_common(1)[0][1] == 4):
+                return(4, self._holdHandFromPare())
 
         #5 フルハウス
-        pareDict = Counter( self.countNumFromHands() ).most_common(2)
+        pareDict = Counter( self._countNumFromHands() ).most_common(2)
         pareList = [pareDict[0][1],pareDict[1][1]]
-        if( self.isExistJoker() ):
+        if( self._isExistJoker() ):
             if( pareList[0]==3 ):
                 return(5, [True,True,True,True,True])
             elif( pareList[0]==2 and pareList[1]==2):
@@ -356,71 +341,71 @@ class Hands:
                 return(5, [True,True,True,True,True])
 
         #6 ロイヤル 4枚残し
-        if( (self.countFromStraightList([10,11,12,13,1])==4) and self.holdHandFromStraightFlash(4)):
-            return(6,self.holdHandFromStraightFlash(4))
+        if( (self._countFromStraightList([10,11,12,13,1])==4) and self._holdHandFromStraightFlash(4)):
+            return(6,self._holdHandFromStraightFlash(4))
 
         #7 フラッシュ
-        if( self.holdHandFromFlash(5) ):
+        if( self._holdHandFromFlash(5) ):
             return(7,(True,True,True,True,True))
 
         #8 ストレート
-        if( self.holdHandFromStraight(5) ):
+        if( self._holdHandFromStraight(5) ):
             return(8,(True,True,True,True,True))
 
         #9 3カード
-        if( self.isExistJoker() ):
-            if( Counter( self.countNumFromHands() ).most_common(1)[0][1] == 2):
-                holdCardList = self.holdHandFromPare()
-                holdCardList[self.posExistJoker()] = True
+        if( self._isExistJoker() ):
+            if( Counter( self._countNumFromHands() ).most_common(1)[0][1] == 2):
+                holdCardList = self._holdHandFromPare()
+                holdCardList[self._posExistJoker()] = True
                 return(9, holdCardList)
         else:
-            if( Counter( self.countNumFromHands() ).most_common(1)[0][1] == 3):
-                return(9, self.holdHandFromPare())
+            if( Counter( self._countNumFromHands() ).most_common(1)[0][1] == 3):
+                return(9, self._holdHandFromPare())
 
 
 
         #10 2ペア
-        if( not self.isExistJoker() ):
-            pareDict = Counter( self.countNumFromHands() ).most_common(2)
+        if( not self._isExistJoker() ):
+            pareDict = Counter( self._countNumFromHands() ).most_common(2)
             pareList = [pareDict[0][1],pareDict[1][1]]
             if( pareList[0]==2 and pareList[1]==2):
-                return(10, self.holdHandFromTwoPare())
+                return(10, self._holdHandFromTwoPare())
 
         #11 ストレートフラッシュ4枚残し
-        if( self.holdHandFromStraightFlash(4) ):
-            return(11, self.holdHandFromStraightFlash(4))
+        if( self._holdHandFromStraightFlash(4) ):
+            return(11, self._holdHandFromStraightFlash(4))
 
         #12 ロイヤル3枚残し
-        if( (self.countFromStraightList([10,11,12,13,1])==3) and self.holdHandFromStraightFlash(3) ):
-            return(12,self.holdHandFromStraightFlash(3))
+        if( (self._countFromStraightList([10,11,12,13,1])==3) and self._holdHandFromStraightFlash(3) ):
+            return(12,self._holdHandFromStraightFlash(3))
 
         #13 ストレート4枚残し
-        if( self.holdHandFromStraight(4) ):
-            return(13,self.holdHandFromStraight(4))
+        if( self._holdHandFromStraight(4) ):
+            return(13,self._holdHandFromStraight(4))
 
         #14 1ペア
-        if(self.isExistJoker()):
-            holdCardList[self.posExistJoker()] = True
+        if(self._isExistJoker()):
+            holdCardList[self._posExistJoker()] = True
             return(14, holdCardList)
         else:
-            if( Counter( self.countNumFromHands() ).most_common(1)[0][1] == 2):
-                return(14, self.holdHandFromPare())
+            if( Counter( self._countNumFromHands() ).most_common(1)[0][1] == 2):
+                return(14, self._holdHandFromPare())
 
         #15 ストフラ3枚残し
-        if( self.holdHandFromStraightFlash(3) ):
-            return(15,self.holdHandFromStraightFlash(3))
+        if( self._holdHandFromStraightFlash(3) ):
+            return(15,self._holdHandFromStraightFlash(3))
 
         #16 ロイヤル2枚残し
-        if( (self.countFromStraightList([10,11,12,13,1])==2) and self.holdHandFromStraightFlash(2)):
-            return(16,self.holdHandFromStraightFlash(2))
+        if( (self._countFromStraightList([10,11,12,13,1])==2) and self._holdHandFromStraightFlash(2)):
+            return(16,self._holdHandFromStraightFlash(2))
 
         #17 ストレート3枚残し
-        if( self.holdHandFromStraight(3) ):
-            return(17,self.holdHandFromStraight(3))
+        if( self._holdHandFromStraight(3) ):
+            return(17,self._holdHandFromStraight(3))
 
         #18 フラッシュ4枚残し
-        if( self.holdHandFromFlash(4)):
-            return(18,self.holdHandFromFlash(4))
+        if( self._holdHandFromFlash(4)):
+            return(18,self._holdHandFromFlash(4))
 
         ##これより下は確率的に狙いたくない
         #19 ストフラ2枚残し
@@ -450,14 +435,12 @@ class Game():
         return self.library
 
 if __name__ == '__main__':
-    cards = [('99', 99), \
-            ('c', 1), \
-            ('d', 13), \
-            ('h', 11), \
-            ('d', 8)]
-
-    print cards
+    '''
+    card_dict =  {u'1': u'2_9', u'3': u'1_13', u'2': u'1_2', u'5': u'2_6', u'4': u'2_11'}
+    card = Card()
+    cards = Card.cardStrDictToCardClassList(card_dict)
     hands = Hands(cards)
     print hands.showCards()
     print hands.showHoldHandPos(1)
     print hands.showHandKeepingReason(0)
+    '''
