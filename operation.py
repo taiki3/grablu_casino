@@ -1,32 +1,46 @@
 # -*- coding: utf-8 -*-
 import winxpgui
 import win32api
+import win32con
+import win32gui
 import random
 from ctypes import windll
 
+
 def clickHigh():
-    clickLeft()
+    _clickLeftButton()
 
 def clickLow():
-    clickRight()
+    _clickRightButton()
 
 def clickYes():
-    clickRight()
+    _clickRightButton()
 
 def clickNo():
-    clickLeft()
+    _clickLeftButton()
 
 def clickStart():
-    clickCenter()
+    _clickCenterButton()
 
 def clickOK():
-    clickCenter()
+    _clickCenterButton()
 
 def sleepPlusRandom(wait):
     waitTime = random.randrange(wait,wait+1)
     win32api.Sleep(waitTime)
 
-def clickHoldCard(changeflag):
+def clickHoldCard(changeFlag):
+    hWnd = _getGraBluWindow()
+    size = winxpgui.GetClientRect(hWnd)
+    x = size[2]/2
+    y = int(x * float(260)/float(175))
+    cardImgSize = int(x * float(55)/float(175))
+    print x,y
+    for i in range(0,5):
+        if( changeFlag[i]==True ):
+            _clickPos(hWnd, x+(i-2)*cardImgSize, y)
+
+def clickHoldCardOld(changeflag):
     windowinfo = _getwindowinfo()
     if windowinfo == False:
         return(False)
@@ -66,6 +80,36 @@ def clickCenter():
     y = windowinfo[1]
     sgain = windowinfo[2]
     _click(int(x),int(y+400*sgain),0)
+
+def _clickPos(hWnd,x,y):
+    XYpos= win32api.MAKELONG(x,y)
+
+    win32api.PostMessage(hWnd, win32con.WM_LBUTTONDOWN,0,XYpos)
+    win32api.PostMessage(hWnd, win32con.WM_LBUTTONUP,0,XYpos)
+
+def _clickLeftButton():
+    hWnd = _getGraBluWindow()
+    size = winxpgui.GetClientRect(hWnd)
+    center = size[2]/2
+    x = center - int(center * float(50)/float(175))
+    y = int(center * float(400)/float(175))
+    _clickPos(hWnd,x,y)
+
+def _clickRightButton():
+    hWnd = _getGraBluWindow()
+    size = winxpgui.GetClientRect(hWnd)
+    center = size[2]/2
+    x = center + int(center * float(50)/float(175))
+    y = int(center * float(400)/float(175))
+    _clickPos(hWnd,x,y)
+
+def _clickCenterButton():
+    hWnd = _getGraBluWindow()
+    size = winxpgui.GetClientRect(hWnd)
+    center = size[2]/2
+    x = center
+    y = int(center * float(400)/float(175))
+    _clickPos(hWnd,x,y)
 
 def _getwindowinfo():
     try:
@@ -119,5 +163,18 @@ def _getid(title,n = 0):
         raise
     return hwnds[n]
 
+def _getGraBluWindow():
+    #titleをウィンドウタイトルに含むウィンドウのウィンドウハンドルを返します
+    #title : 検索に使うタイトル
+    title = "ChromeApp"
+    hwnds = []
+    try:
+        winxpgui.EnumWindows(_proc,[title,hwnds])
+    except:
+        raise
+    return hwnds[0]
+
 if __name__ == "__main__":
-    pass
+    #flag = (True,True,True,False,True)
+    #clickHoldCard(flag)
+    _clickLeftButton()
