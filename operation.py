@@ -35,7 +35,6 @@ def clickHoldCard(changeFlag):
     x = size[2]/2
     y = int(x * float(260)/float(175))
     cardImgSize = int(x * float(55)/float(175))
-    print x,y
     for i in range(0,5):
         if( changeFlag[i]==True ):
             _clickPos(hWnd, x+(i-2)*cardImgSize, y)

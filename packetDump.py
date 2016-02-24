@@ -4,7 +4,7 @@ from winpcapy import *
 import sys
 import string
 import platform
-from Casino import pokerReadGameData
+import pokerReadGameData
 import win32api
 from win32con import *
 import dpkt,socket
