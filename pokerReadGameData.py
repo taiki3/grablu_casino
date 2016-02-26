@@ -235,20 +235,4 @@ def _cardStrDictToCardClassList(cardDict):
     return cards
 
 if __name__ == '__main__':
-    '''
-    cards = [('h', 8), \
-            ('s', 11), \
-            ('h', 12), \
-            ('s', 9), \
-            ('d', 6)]
-
-    #print cards[1].suit, cards[1].num
-    print cards
-    hands = pokerHandsClass.Hands()
-    hands.setHands(cards)
-    print hands.showCards()
-    print hands.showHoldHandPos(1)
-    operation.clickcard(hands.showHoldHandPos(1))
-    operation.clickcenter()
-    print hands.showHandKeepingReason(0)
-    '''
+    pass

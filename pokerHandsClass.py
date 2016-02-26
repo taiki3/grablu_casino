@@ -266,6 +266,10 @@ class Hands:
 
         #print countStraightCard
         if( countStraightCard >= keepNum or countStraightCard13_1 >=keepNum):
+            #2枚くっつきを優先
+            for x in range(2,minStraightCardNum+1):
+                if( self._isExistNum(x) and self._isExistNum(x+1) ):
+                    minStraightCardNum = x
             #リャンメン系を優先
             for x in [2,3,4,5,6,7,8,9,10,11]:
                 countLinkNum = 0
@@ -483,11 +487,11 @@ class Game():
 
 if __name__ == '__main__':
     cards = Card()
-    cards = [Card().setCard(u'h', 8), \
-            Card().setCard(u's', 11), \
-            Card().setCard(u'h', 12), \
-            Card().setCard(u's', 9), \
-            Card().setCard(u'd', 6)]
+    cards = [Card().setCard(u'h', 2), \
+            Card().setCard(u's', 3), \
+            Card().setCard(u's', 5), \
+            Card().setCard(u's', 7), \
+            Card().setCard(u'd', 10)]
     hands = Hands()
     hands.setHands(cards)
     print hands.showCards()
