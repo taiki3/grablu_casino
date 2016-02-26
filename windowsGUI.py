@@ -9,6 +9,8 @@ import operation
 import win32gui
 import winxpgui
 from PyQt4.Qt import QRect
+import subprocess
+from _ctypes import POINTER
 
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -63,6 +65,10 @@ class MyForm(QtGui.QMainWindow):
 
     def changeWaitRandom(self):
         self.waitRandomRangeMax = self.ui.verticalSlider_waitRandom.value()
+
+    def shortcutGrablu(self):
+        cmd = u"start chrome.exe --profile-directory=Default --app-id=eablgejicbklomgaiclcolfilbkckngf"
+        subprocess.call(cmd, shell=True)
 
     def runProgram(self):
         if(self.isRunProgram):

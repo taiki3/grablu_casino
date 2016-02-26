@@ -85,6 +85,9 @@ class Ui_MainWindow(object):
         self.label_2 = QtGui.QLabel(self.frameOperation)
         self.label_2.setGeometry(QtCore.QRect(113, 36, 101, 16))
         self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.commandLinkButton = QtGui.QCommandLinkButton(self.frameOperation)
+        self.commandLinkButton.setGeometry(QtCore.QRect(10, 280, 188, 41))
+        self.commandLinkButton.setObjectName(_fromUtf8("commandLinkButton"))
         self.horizontalLayout.addWidget(self.frameOperation)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -105,6 +108,7 @@ class Ui_MainWindow(object):
         QtCore.QObject.connect(self.spinBox_waitRandom, QtCore.SIGNAL(_fromUtf8("valueChanged(int)")), MainWindow.changeWaitRandom)
         QtCore.QObject.connect(self.verticalSlider_waitBase, QtCore.SIGNAL(_fromUtf8("sliderMoved(int)")), MainWindow.changeWaitBase)
         QtCore.QObject.connect(self.verticalSlider_waitRandom, QtCore.SIGNAL(_fromUtf8("sliderMoved(int)")), MainWindow.changeWaitRandom)
+        QtCore.QObject.connect(self.commandLinkButton, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.shortcutGrablu)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -113,4 +117,5 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "待ち時間基礎値", None))
         self.pushButtonRun.setText(_translate("MainWindow", "実行", None))
         self.label_2.setText(_translate("MainWindow", "待ち時間ランダム幅", None))
+        self.commandLinkButton.setText(_translate("MainWindow", "グラブルを起動", None))
 
