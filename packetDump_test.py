@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from ctypes import *
 from winpcapy import *
-import sys
+from winpcapy_types import *
+#import sys
 import platform
 import dpkt,socket
 import json
@@ -92,5 +93,6 @@ class PacketDump():
         pcap_close(self.fp)
 
 if __name__ == '__main__':
-    myclass = PacketDump()
-    myclass.getDeviceDict()
+    pass
+    #myclass = PacketDump()
+    #myclass.getDeviceDict()

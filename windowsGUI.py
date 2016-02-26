@@ -10,7 +10,6 @@ import win32gui
 import winxpgui
 from PyQt4.Qt import QRect
 import subprocess
-from _ctypes import POINTER
 
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -97,8 +96,7 @@ class MyForm(QtGui.QMainWindow):
         res = self.pDump.getPacket()
         if(res==0):
             print u"タイムアウト"
-            #self.timer.stop()
-            #self.timer.timeout.disconnect()
+            operation.clickReload()
             return
         if(res>0):
             gameData = self.pDump.packetToGameData()
@@ -230,6 +228,7 @@ class MyForm(QtGui.QMainWindow):
             inifile.write(configfile)
 
         return QtGui.QMainWindow.closeEvent(self, *args, **kwargs)
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = MyForm()
