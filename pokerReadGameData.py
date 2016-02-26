@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import pokerHandsClass
-import operation
 import pokerDoubleUp
 
 def handName(hand_id):
@@ -11,7 +10,7 @@ def handName(hand_id):
     elif( hand_id == 9 ):
         return u'ツーペア'
     elif( hand_id == 8 ):
-        return u'３カード'
+        return u'スリーカード'
     elif( hand_id == 7 ):
         return u'ストレート'
     elif( hand_id == 6 ):
@@ -28,28 +27,43 @@ def handName(hand_id):
         return u'ロイヤルストレートフラッシュ'
 
 def readGameData(gameData):
+    if( gameData.get(u'errorPopFlag') ):
+        print u"Erorr: errorPopFlag=True"
+        print gameData
+        return {u'status':u'ERROR_POP_FLAG_TRUE',u'data':gameData}
+
     if( gameData.has_key(u'mbp_limit_info') ):
         print u"MyPage Loading"
+        return {u'status':u'MYPAGE_LOADING'}
 
     elif( gameData.has_key(u'data') ):
         if( gameData.has_key(u'option') ):
             print u"MsgData Loading"
+            return {u'status':u'MSGDATA_LOADING'}
         elif( gameData.get(u'data').has_key(u'se001') ):
             print u"mp3Data Loading"
+            return {u'status':u'MP3DATA_LOADING'}
         else:
             print u"anyData Loading"
+            return {u'status':u'ANYDATA_LOADING'}
 
     elif( gameData.has_key(u'other_game_play_flag') ):
         print u"Check playing other games"
+        return {u'status':u'CHECK_PLAYING_OTHER_GAMES'}
 
     elif( gameData.get(u'reason')==0 and gameData.get(u'result')==True ):
         print u"Welcome Jewel Resort Casino"
+        return {u'status':u'WELCOME_CASINO'}
 
-    elif( gameData.get(u'hand_list')==[] ):
+    elif( gameData.get(u'hand_list')==[] and gameData.has_key(u'card_list') ):
         print u"Poker Start"
+        if( gameData.get(u'card_list')==[] ):
+            return {u'status':u'POKER_START'}
+
         if( gameData.has_key(u'card_list') ):
             cards = _cardStrDictToCardClassList(gameData.get(u'card_list'))
-            hands = pokerHandsClass.Hands(cards)
+            hands = pokerHandsClass.Hands()
+            hands.setHands(cards)
             print u"DealtHands:",
             print hands.showCards()
             print u"Hold:",
@@ -57,9 +71,7 @@ def readGameData(gameData):
             print u"Reason:",
             print hands.showHandKeepingReason(0)
 
-            operation.sleepPlusRandom(3000)
-            operation.clickHoldCard(hands.showHoldHandPos(0))
-            operation.clickOK()
+            return {u'status':u'GAME_START',u'Hands':hands}
 
     elif( gameData.has_key(u'game_flag') ):
         print u"Restart Game"
@@ -72,36 +84,37 @@ def readGameData(gameData):
 
             if( doubleup.judgeHiLow()==u'High' ):
                 print u"High"
-                operation.sleepPlusRandom(2000)
-                operation.clickHigh()
+                return {u'status':u'RESTART_DOUBLEUP_HIGH'}
+
             elif( doubleup.judgeHiLow()==u'Low' ):
                 print u"Low"
-                operation.sleepPlusRandom(2000)
-                operation.clickLow()
+                return {u'status':u'RESTART_DOUBLEUP_LOW'}
 
     elif( gameData.has_key(u'card_list') and gameData.has_key(u'result') ):
         if( gameData.get(u'result')==u'win' ):
             cards = _cardStrDictToCardClassList(gameData.get(u'card_list'))
-            hands = pokerHandsClass.Hands(cards)
+            hands = pokerHandsClass.Hands()
+            hands.setHands(cards)
             print u"ResultHands:",
             print hands.showCards()
             print u"Result:",
             print handName(gameData.get(u'hand_id'))
 
             print u"ダブルアップに挑戦しますか？ YES!"
-            operation.sleepPlusRandom(2500)
-            operation.clickYes()
+
+            return {u'status':u'GAME_WIN',u'Hands':hands,u'hand_name':handName(gameData.get(u'hand_id'))}
 
         elif( gameData.get(u'result')==u'lose' ):
             if( gameData.has_key(u'hand') ):
                 cards = _cardStrDictToCardClassList(gameData.get(u'card_list'))
-                hands = pokerHandsClass.Hands(cards)
+                hands = pokerHandsClass.Hands()
+                hands.setHands(cards)
                 print u"ResultHands:",
                 print hands.showCards()
                 print u"Result:",
                 print handName(gameData.get(u'hand_id'))
-                operation.sleepPlusRandom(2500)
-                operation.clickStart()
+
+                return {u'status':u'GAME_LOSE',u'Hands':hands,u'hand_name':handName(gameData.get(u'hand_id'))}
 
     elif( gameData.has_key(u'next_game_flag') ):
         if( gameData.get(u'next_game_flag') ):
@@ -116,34 +129,31 @@ def readGameData(gameData):
                 print doubleup.card2.num
                 if( doubleup.isNextDoubleUp() ):
                     print u"YES"
-                    operation.sleepPlusRandom(1500)
-                    operation.clickYes()
+                    return {u'status':u'IS_NEXT_DOUBLEUP_YES',u'result':gameData.get(u'result'),u'DoubleUp':doubleup}
                 else:
                     print u"NO"
-                    operation.sleepPlusRandom(1500)
-                    operation.clickNo()
+                    return {u'status':u'IS_NEXT_DOUBLEUP_NO',u'result':gameData.get(u'result'),u'DoubleUp':doubleup}
 
             elif( gameData.get(u'result')==u'lose' ):
                 print u"lose"
-                operation.sleepPlusRandom(1500)
-                operation.clickStart()
+                return {u'status':u'DOUBLEUP_LOSE'}
 
         elif(not gameData.get(u'next_game_flag')):
-            if( gameData.get(u'result')==u'win' ):
+            if( gameData.get(u'result')==u'win' and gameData.has_key(u'pay_medal') ):
+                getMedal = gameData.get(u'pay_medal')
                 print u"win"
                 print u"ダブルアップ上限"
-                operation.sleepPlusRandom(2000)
-                operation.clickStart()
+                return {u'status':u'DOUBLEUP_MAX',u'get':getMedal}
+
             elif( gameData.get(u'result')==u'draw' ):
                 #10ラウンド目のダブルアップに引き分けた
                 print u"draw"
-                operation.sleepPlusRandom(2000)
-                operation.clickStart()
+                return {u'status':u'DOUBLEUP_10ROUND_DRAW'}
+
             elif( gameData.get(u'result')==u'lose' ):
                 #10ラウンド目のダブルアップに負けた
                 print u"lose"
-                operation.sleepPlusRandom(2000)
-                operation.clickStart()
+                return {u'status':u'DOUBLEUP_10ROUND_LOSE'}
 
     elif( gameData.has_key(u'card_first') ):
         print u"+ダブルアップ挑戦中+"
@@ -153,16 +163,16 @@ def readGameData(gameData):
 
         if( doubleup.judgeHiLow()==u'High' ):
             print u"High"
-            operation.sleepPlusRandom(1500)
-            operation.clickHigh()
+            return {u'status':u'DOUBLEUP_HIGH'}
+
         elif( doubleup.judgeHiLow()==u'Low' ):
             print u"Low"
-            operation.sleepPlusRandom(1500)
-            operation.clickLow()
+            return {u'status':u'DOUBLEUP_LOW'}
 
     elif( gameData.has_key(u'card_list') ):
         cards = _cardStrDictToCardClassList(gameData.get(u'card_list'))
-        hands = pokerHandsClass.Hands(cards)
+        hands = pokerHandsClass.Hands()
+        hands.setHands(cards)
         print u"DealtHands:",
         print hands.showCards()
         print u"Hold:",
@@ -170,31 +180,34 @@ def readGameData(gameData):
         print u"Reason:",
         print hands.showHandKeepingReason(0)
 
-        operation.sleepPlusRandom(2000)
-        operation.clickHoldCard(hands.showHoldHandPos(0))
-        operation.clickOK()
+        return {u'status':u'GAME_START',u'Hands':hands}
 
     elif( gameData.has_key(u'status') ):
-        getMedal = gameData[u'status'].get(u'get_medal')
-        if( getMedal > 0):
-            print u"get medal!!!"
-            operation.sleepPlusRandom(2000)
-            operation.clickStart()
+        if( gameData[u'status'].has_key(u'get_medal') ):
+            getMedal = gameData[u'status'].get(u'get_medal')
+            if( getMedal > 0):
+                print u"get medal!!!"
+                return {u'status':u'GET_MEDAL',u'get':getMedal}
+            else:
+                print u"Error: 知らないパターン003"
+                print gameData
+
+                return {u'status':u'UNKNOWN',u'data':gameData,u'num':003}
         else:
-            print u"Error: 知らないパターン003"
+            print u"Error: 知らないパターン004"
             print gameData
 
-    elif( gameData.get(u'errorPopFlag') ):
-        print u"Erorr: errorPopFlag=True"
-        print gameData
+            return {u'status':u'UNKNOWN',u'data':gameData,u'num':004}
 
     else:
         print u"Error: 知らないパターン999"
         print gameData
 
+        return {u'status':u'UNKNOWN',u'data':gameData,u'num':999}
+
 def _cardStrToCardClass(cardStr):
     cardInfo = cardStr.split(u"_")
-    suit = False
+    suit = ""
     num = int(cardInfo[1])
     if( cardInfo[0] == u'1' ):
         suit = u's'
@@ -209,7 +222,8 @@ def _cardStrToCardClass(cardStr):
     else:
         return False
 
-    newCard = pokerHandsClass.Card(suit,num)
+    newCard = pokerHandsClass.Card()
+    newCard.setCard(suit, num)
     return newCard.getCard()
 
 def _cardStrDictToCardClassList(cardDict):
@@ -230,7 +244,8 @@ if __name__ == '__main__':
 
     #print cards[1].suit, cards[1].num
     print cards
-    hands = pokerHandsClass.Hands(cards)
+    hands = pokerHandsClass.Hands()
+    hands.setHands(cards)
     print hands.showCards()
     print hands.showHoldHandPos(1)
     operation.clickcard(hands.showHoldHandPos(1))

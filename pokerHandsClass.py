@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
+from __builtin__ import str
 
 class Card:
-    def __init__(self,suit,num):
+    def __init__(self):
+        self.suit = u''
+        self.num = 0
+
+    def setCard(self,suit,num):
         self.suit = suit
         self.num = num
+        return self
 
     def getCard(self):
         return self
@@ -18,22 +24,35 @@ class Card:
     def showCard(self):
         return str( self.suit+str(self.num) )
 
-    def setCard(self,suit,num):
-        self.suit = suit
-        self.num = num
+    def showCardStr(self):
+        if( self.suit == u'99' or self.num == 99):
+            return u'Jo'
+
+        suit = ""
+        if( self.suit == u's'):
+            suit = u'♠'
+        elif( self.suit == u'h'):
+            suit = u'♡'
+        elif( self.suit == u'd'):
+            suit = u'♢'
+        elif( self.suit == u'c'):
+            suit = u'♣'
+
+        return suit+str(self.num)
 
 class Hands:
-    def __init__(self,cards):
+    def __init__(self):
+        self.cardList = [Card(),Card(),Card(),Card(),Card()]
+        self.handPattern = False
+        self.holdPos = False
+
+    def setHands(self,cards):
         assert type(cards) == list
-        if( len(cards)== 5 ):
-            cardList = []
-            for i in [0,1,2,3,4]:
-                cardList.append( cards[i] )
-            self.cardList = cardList
-            self.handPattern = False
-            self.holdPos = False
-        else:
-            return False
+        assert len(cards) == 5
+        cardList = []
+        for i in [0,1,2,3,4]:
+            cardList.append( cards[i] )
+        self.cardList = cardList
 
     def showHoldHandPos(self,isRedoJudge):
         # isRedoJudge ジャッジ関数を呼び直すか否か
@@ -46,6 +65,16 @@ class Hands:
             return False
         else:
             return self.holdPos
+
+    def showHoldHandPosStr(self,isRedoJudge):
+        holdPos = self.showHoldHandPos(isRedoJudge)
+        strHoldPos = u""
+        for i in [0,1,2,3,4]:
+            if( holdPos[i] ):
+                strHoldPos += u'YES '
+            else:
+                strHoldPos += u'NO '
+        return strHoldPos
 
     def showHandKeepingReason(self,isRedoJudge):
         # isRedoJudge ジャッジ関数を呼び直すか否か
@@ -73,9 +102,9 @@ class Hands:
         elif(self.handPattern==8):
             return u"+ストレート+"
         elif(self.handPattern==9):
-            return u"+3カード+"
+            return u"+スリーカード+"
         elif(self.handPattern==10):
-            return u"+2ペア+"
+            return u"+ツーペア+"
         elif(self.handPattern==11):
             return u"+ストレートフラッシュ4枚残し+"
         elif(self.handPattern==12):
@@ -83,7 +112,7 @@ class Hands:
         elif(self.handPattern==13):
             return u"+ストレート4枚残し+"
         elif(self.handPattern==14):
-            return u"+1ペア+"
+            return u"+ワンペア+"
         elif(self.handPattern==15):
             return u"+ストフラ3枚残し+"
         elif(self.handPattern==16):
@@ -106,6 +135,24 @@ class Hands:
         for i in [0,1,2,3,4]:
             cards.append( self.cardList[i].suit+str(self.cardList[i].num) )
         return cards
+
+    def showCardsStr(self):
+        strCards = u""
+        for i in [0,1,2,3,4]:
+            suit = ""
+            if( self.cardList[i].suit == u'99' or self.cardList[i].num == 99):
+                strCards += u'Jo '
+                continue
+            if( self.cardList[i].suit == u's'):
+                suit = u'♠'
+            elif( self.cardList[i].suit == u'h'):
+                suit = u'♡'
+            elif( self.cardList[i].suit == u'd'):
+                suit = u'♢'
+            elif( self.cardList[i].suit == u'c'):
+                suit = u'♣'
+            strCards += suit + str(self.cardList[i].num) + u" "
+        return strCards
 
     def _countSuitFromHands(self):
         ## ハンドにそのスートがいくつ含まれているか
@@ -435,12 +482,14 @@ class Game():
         return self.library
 
 if __name__ == '__main__':
-    '''
-    card_dict =  {u'1': u'2_9', u'3': u'1_13', u'2': u'1_2', u'5': u'2_6', u'4': u'2_11'}
-    card = Card()
-    cards = Card.cardStrDictToCardClassList(card_dict)
-    hands = Hands(cards)
+    cards = Card()
+    cards = [Card().setCard(u'h', 8), \
+            Card().setCard(u's', 11), \
+            Card().setCard(u'h', 12), \
+            Card().setCard(u's', 9), \
+            Card().setCard(u'd', 6)]
+    hands = Hands()
+    hands.setHands(cards)
     print hands.showCards()
     print hands.showHoldHandPos(1)
     print hands.showHandKeepingReason(0)
-    '''

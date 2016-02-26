@@ -2,7 +2,6 @@
 import winxpgui
 import win32api
 import win32con
-import win32gui
 import random
 from ctypes import windll
 
@@ -25,9 +24,12 @@ def clickStart():
 def clickOK():
     _clickCenterButton()
 
-def sleepPlusRandom(wait):
-    waitTime = random.randrange(wait,wait+1)
-    win32api.Sleep(waitTime)
+def sleepPlusRandom(wait,rangeMax):
+    if( rangeMax == 0 ):
+        win32api.Sleep(wait)
+    else:
+        waitTime = random.randrange(wait,wait+rangeMax)
+        win32api.Sleep(waitTime)
 
 def clickHoldCard(changeFlag):
     hWnd = _getGraBluWindow()
@@ -82,9 +84,8 @@ def clickCenter():
 
 def _clickPos(hWnd,x,y):
     XYpos= win32api.MAKELONG(x,y)
-
-    win32api.PostMessage(hWnd, win32con.WM_LBUTTONDOWN,0,XYpos)
-    win32api.PostMessage(hWnd, win32con.WM_LBUTTONUP,0,XYpos)
+    win32api.SendMessage(hWnd, win32con.WM_LBUTTONDOWN,0,XYpos)
+    win32api.SendMessage(hWnd, win32con.WM_LBUTTONUP,0,XYpos)
 
 def _clickLeftButton():
     hWnd = _getGraBluWindow()
@@ -167,10 +168,13 @@ def _getGraBluWindow():
     #title : 検索に使うタイトル
     title = "ChromeApp"
     hwnds = []
+
     try:
         winxpgui.EnumWindows(_proc,[title,hwnds])
     except:
+        print u"no window"
         raise
+
     return hwnds[0]
 
 if __name__ == "__main__":
