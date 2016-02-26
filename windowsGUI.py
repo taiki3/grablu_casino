@@ -39,16 +39,16 @@ class MyForm(QtGui.QMainWindow):
             self.nDeviceNum = int( inifile.get(u'device', u'number') )
             self.nDevice = self.pDump.selectDevice( self.nDeviceNum )
             self.ui.comboBoxDevice.setCurrentIndex(self.nDeviceNum)
-            self.waitBase = int( inifile.get(u'wait', u'base') )
-            self.ui.spinBox_waitBase.setValue( self.waitBase )
-            self.ui.verticalSlider_waitBase.setValue( self.waitBase )
+            self.waitAdjust = int( inifile.get(u'wait', u'adjust') )
+            self.ui.spinBox_waitAdjust.setValue( self.waitAdjust )
+            self.ui.verticalSlider_waitAdjust.setValue( self.waitAdjust )
             self.waitRandomRangeMax = int( inifile.get(u'wait', u'randam_range') )
             self.ui.spinBox_waitRandom.setValue( self.waitRandomRangeMax )
             self.ui.verticalSlider_waitRandom.setValue( self.waitRandomRangeMax )
         else:
             self.nDevice = False
             self.nDeviceNum = 0
-            self.waitBase = 1000
+            self.waitAdjust = 0
             self.waitRandomRangeMax = 1000
 
     def selectDevice(self,iNum):
@@ -59,8 +59,8 @@ class MyForm(QtGui.QMainWindow):
             self.nDevice = False
             self.nDeviceNum = 0
 
-    def changeWaitBase(self):
-        self.waitBase = self.ui.verticalSlider_waitBase.value()
+    def changeWaitAdjust(self):
+        self.waitAdjust = self.ui.verticalSlider_waitAdjust.value()
 
     def changeWaitRandom(self):
         self.waitRandomRangeMax = self.ui.verticalSlider_waitRandom.value()
@@ -124,8 +124,7 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u"├Hands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'├Hold: '+self.hands.showHoldHandPosStr(0) )
                         self.ui.textEdit.append( u'└Reason: '+self.hands.showHandKeepingReason(0) )
-                        self.ui.textEdit.update()
-                        operation.sleepPlusRandom(self.waitBase*3,self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(3000+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickHoldCard(self.hands.showHoldHandPos(0))
                         operation.clickOK()
                     if( gameStatus.get(u'status')==u'GAME_WIN' ):
@@ -133,34 +132,34 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Win' )
                         self.ui.textEdit.append( u"├Result: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        operation.sleepPlusRandom(int(self.waitBase*2.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickYes()
                     if( gameStatus.get(u'status')==u'GAME_LOSE' ):
                         self.hands = gameStatus.get(u'Hands')
                         self.ui.textEdit.append( u'Lose' )
                         self.ui.textEdit.append( u"├ResultHands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        operation.sleepPlusRandom(int(self.waitBase*2.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickStart()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_HIGH'):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└High' )
-                        operation.sleepPlusRandom(int(self.waitBase*1.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickHigh()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_LOW'):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└Low' )
-                        operation.sleepPlusRandom(int(self.waitBase*1.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickLow()
                     if( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_HIGH'  ):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└High' )
-                        operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickHigh()
                     if( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_LOW' ):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└Low' )
-                        operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickLow()
 
                     if( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_YES' ):
@@ -168,38 +167,38 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: YES' )
-                        operation.sleepPlusRandom(int(self.waitBase*1.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickYes()
                     if( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_NO' ):
                         doubleup = gameStatus.get(u'DoubleUp')
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: NO' )
-                        operation.sleepPlusRandom(int(self.waitBase*1.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickNo()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_LOSE' ):
                         self.ui.textEdit.append( u'Lose' )
-                        operation.sleepPlusRandom(int(self.waitBase*1.5),self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickStart()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_MAX' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
                             self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                            operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                             operation.clickStart()
                     if( gameStatus.get(u'status')==u'GET_MEDAL' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
                             self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                            operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                             operation.clickStart()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_DRAW' ):
                         self.ui.textEdit.append( u'Draw' )
-                        operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickStart()
                     if( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_LOSE'):
                         self.ui.textEdit.append( u'Lose' )
-                        operation.sleepPlusRandom(self.waitBase*2,self.waitRandomRangeMax)
+                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
                         operation.clickStart()
                     if( gameStatus.get(u'status')==u'UNKNOWN'):
                         self.ui.textEdit.append( u'UNKNOWN DATA' )
@@ -221,7 +220,7 @@ class MyForm(QtGui.QMainWindow):
         inifile.add_section(u'device')
         inifile.set(u'device',u'number',str(self.nDeviceNum))
         inifile.add_section(u'wait')
-        inifile.set(u'wait',u'base',str(self.waitBase))
+        inifile.set(u'wait',u'adjust',str(self.waitAdjust))
         inifile.set(u'wait',u'randam_range',str(self.waitRandomRangeMax))
 
         with open(u'config.ini', u'wb') as configfile:
