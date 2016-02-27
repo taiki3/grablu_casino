@@ -10,6 +10,8 @@ import win32gui
 import winxpgui
 from PyQt4.Qt import QRect
 import subprocess
+import random
+import os
 
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -20,8 +22,15 @@ class MyForm(QtGui.QMainWindow):
         self.isRunProgram = False
         self.pTimer = QtCore.QTimer()
         self.pTimer.timeout.connect(self.readPacket)
+        self.pTimer.setInterval(200)
         self.pDump = packetDump_test.PacketDump()
+        self.pDumpBefore = packetDump_test.PacketDump()
         self.hands = pokerHandsClass.Hands()
+
+
+        self.clickTimer = QtCore.QTimer()
+        self.clickTimer.timeout.connect(self.delayClick)
+        self.clickPosStr = u""
 
         deviceDict = self.pDump.getDeviceDict()
         for u in deviceDict:
@@ -29,7 +38,8 @@ class MyForm(QtGui.QMainWindow):
         self.ui.comboBoxDevice.activated.connect(self.selectDevice)
 
         inifile = ConfigParser.RawConfigParser()
-        if( inifile.read(u'config.ini') ):
+        if( os.path.isfile(u'config.ini') ):
+            inifile.read(u'config.ini')
             left = int( inifile.get(u'window',u'left') )
             top = int( inifile.get(u'window',u'top') )
             width = int( inifile.get(u'window',u'width') )
@@ -69,6 +79,34 @@ class MyForm(QtGui.QMainWindow):
         cmd = u"start chrome.exe --profile-directory=Default --app-id=eablgejicbklomgaiclcolfilbkckngf"
         subprocess.call(cmd, shell=True)
 
+    def _setWaitTime(self,wait):
+        if( self.waitRandomRangeMax==0 ):
+            self.clickTimer.setInterval(wait)
+            self.clickTimer.start()
+        else:
+            self.clickTimer.setInterval( random.randrange(wait,wait+self.waitRandomRangeMax) )
+            self.clickTimer.start()
+
+    def delayClick(self):
+        print "Click!!!!"
+        if( self.clickPosStr==u'High' ):
+            operation.clickHigh()
+        elif( self.clickPosStr==u'Low' ):
+            operation.clickLow()
+        elif( self.clickPosStr==u'Yes' ):
+            operation.clickYes()
+        elif( self.clickPosStr==u'No' ):
+            operation.clickNo()
+        elif( self.clickPosStr==u'Start' ):
+            operation.clickStart()
+        elif( self.clickPosStr==u'Ok' ):
+            operation.clickOK()
+        elif( self.clickPosStr==u'Hold' ):
+            operation.clickHoldCard(self.hands.showHoldHandPos(0))
+            operation.clickOK()
+
+        self.clickTimer.stop()
+
     def runProgram(self):
         if(self.isRunProgram):
             self.isRunProgram = False
@@ -85,8 +123,7 @@ class MyForm(QtGui.QMainWindow):
 
         self.ui.textEdit.append(u'プログラム開始')
         self.pDump.runPacketDump(self.nDevice)
-
-        self.pTimer.start(20)
+        self.pTimer.start()
 
         self.isRunProgram = True
         self.ui.pushButtonRun.setText(u"停止")
@@ -106,106 +143,135 @@ class MyForm(QtGui.QMainWindow):
                     if( gameStatus.get(u'status')==u'ERROR_POP_FLAG_TRUE' ):
                         self.ui.textEdit.append( gameStatus.get(u'status') )
                         self.ui.textEdit.append( gameStatus.get(u'data') )
-                    if( gameStatus.get(u'status')==u'MYPAGE_LOADING' or \
+                    elif( gameStatus.get(u'status')==u'MYPAGE_LOADING' or \
                         gameStatus.get(u'status')==u'MSGDATA_LOADING' or \
                         gameStatus.get(u'status')==u'MP3DATA_LOADING' or \
                         gameStatus.get(u'status')==u'ANYDATA_LOADING' or \
                         gameStatus.get(u'status')==u'CHECK_PLAYING_OTHER_GAMES' or \
                         gameStatus.get(u'status')==u'WELCOME_CASINO' ):
                         self.ui.textEdit.append( gameStatus.get(u'status') )
-                    if( gameStatus.get(u'status')==u'POKER_START' ):
+                    elif( gameStatus.get(u'status')==u'POKER_START' ):
                         self.ui.textEdit.append( u'Poker start' )
-                        operation.sleepPlusRandom(10,self.waitRandomRangeMax)
-                        operation.clickStart()
+                        self._setWaitTime(100)
+                        self.clickPosStr = u'Start'
+                        return
 
-                    if( gameStatus.get(u'status')==u'GAME_START'):
+                    elif( gameStatus.get(u'status')==u'GAME_START'):
                         self.hands = gameStatus.get(u'Hands')
                         self.ui.textEdit.append( u"Dealt")
                         self.ui.textEdit.append( u"├Hands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'├Hold: '+self.hands.showHoldHandPosStr(0) )
                         self.ui.textEdit.append( u'└Reason: '+self.hands.showHandKeepingReason(0) )
-                        operation.sleepPlusRandom(3000+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickHoldCard(self.hands.showHoldHandPos(0))
-                        operation.clickOK()
-                    if( gameStatus.get(u'status')==u'GAME_WIN' ):
+                        self._setWaitTime(2000+self.waitAdjust)
+                        self.clickPosStr=u'Hold'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'GAME_WIN' ):
                         self.hands = gameStatus.get(u'Hands')
                         self.ui.textEdit.append( u'Win' )
                         self.ui.textEdit.append( u"├Result: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        operation.sleepPlusRandom(2500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickYes()
-                    if( gameStatus.get(u'status')==u'GAME_LOSE' ):
+                        self._setWaitTime(2500+self.waitAdjust)
+                        self.clickPosStr=u'Yes'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'GAME_LOSE' ):
                         self.hands = gameStatus.get(u'Hands')
                         self.ui.textEdit.append( u'Lose' )
                         self.ui.textEdit.append( u"├ResultHands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        operation.sleepPlusRandom(2500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickStart()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_HIGH'):
-                        self.ui.textEdit.append( u'DoubleUP' )
-                        self.ui.textEdit.append( u'└High' )
-                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickHigh()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_LOW'):
-                        self.ui.textEdit.append( u'DoubleUP' )
-                        self.ui.textEdit.append( u'└Low' )
-                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickLow()
-                    if( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_HIGH'  ):
-                        self.ui.textEdit.append( u'DoubleUP' )
-                        self.ui.textEdit.append( u'└High' )
-                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickHigh()
-                    if( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_LOW' ):
-                        self.ui.textEdit.append( u'DoubleUP' )
-                        self.ui.textEdit.append( u'└Low' )
-                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickLow()
+                        self._setWaitTime(2500+self.waitAdjust)
+                        self.clickPosStr=u'Start'
+                        return
 
-                    if( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_YES' ):
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_HIGH'):
+                        self.ui.textEdit.append( u'DoubleUP' )
+                        self.ui.textEdit.append( u'└High' )
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'High'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_LOW'):
+                        self.ui.textEdit.append( u'DoubleUP' )
+                        self.ui.textEdit.append( u'└Low' )
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'Low'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_HIGH'  ):
+                        self.ui.textEdit.append( u'DoubleUP' )
+                        self.ui.textEdit.append( u'└High' )
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'High'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_LOW' ):
+                        self.ui.textEdit.append( u'DoubleUP' )
+                        self.ui.textEdit.append( u'└Low' )
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'Low'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_YES' ):
                         doubleup = gameStatus.get(u'DoubleUp')
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: YES' )
-                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickYes()
-                    if( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_NO' ):
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'Yes'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_NO' ):
                         doubleup = gameStatus.get(u'DoubleUp')
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: NO' )
-                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickNo()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_LOSE' ):
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'No'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_LOSE' ):
                         self.ui.textEdit.append( u'Lose' )
-                        operation.sleepPlusRandom(1500+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickStart()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_MAX' ):
+                        self._setWaitTime(2000+self.waitAdjust)
+                        self.clickPosStr=u'Start'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_MAX' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
                             self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                            operation.clickStart()
-                    if( gameStatus.get(u'status')==u'GET_MEDAL' ):
+                            self._setWaitTime(1500+self.waitAdjust)
+                            self.clickPosStr=u'Start'
+                            return
+
+                    elif( gameStatus.get(u'status')==u'GET_MEDAL' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
                             self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                            operation.clickStart()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_DRAW' ):
+                            self._setWaitTime(1500+self.waitAdjust)
+                            self.clickPosStr=u'Start'
+                            return
+
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_DRAW' ):
                         self.ui.textEdit.append( u'Draw' )
-                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickStart()
-                    if( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_LOSE'):
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'Start'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_LOSE'):
                         self.ui.textEdit.append( u'Lose' )
-                        operation.sleepPlusRandom(2000+self.waitAdjust,self.waitRandomRangeMax)
-                        operation.clickStart()
-                    if( gameStatus.get(u'status')==u'UNKNOWN'):
+                        self._setWaitTime(1500+self.waitAdjust)
+                        self.clickPosStr=u'Start'
+                        return
+
+                    elif( gameStatus.get(u'status')==u'UNKNOWN'):
                         self.ui.textEdit.append( u'UNKNOWN DATA' )
                         if( gameStatus.has_key(u'data') ):
                             self.ui.textEdit.append( gameStatus.get(u'data') )
+                            return
                         if( gameStatus.has_key(u'num') ):
                             self.ui.textEdit.append( u'ErrorNum:'+gameStatus.get(u'num') )
+                            return
 
     def closeEvent(self, *args, **kwargs):
         myHwnd = winxpgui.FindWindow(0,unicode(self.windowTitle()))
