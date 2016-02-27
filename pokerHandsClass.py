@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
-from __builtin__ import str
 
 class Card:
     def __init__(self):
@@ -264,19 +263,18 @@ class Hands:
         else:
             countStraightCard = self._countFromStraightList(range(minStraightCardNum,minStraightCardNum+5))
 
-        #print countStraightCard
         if( countStraightCard >= keepNum or countStraightCard13_1 >=keepNum):
             #2枚くっつきを優先
             for x in range(2,minStraightCardNum+1):
                 if( self._isExistNum(x) and self._isExistNum(x+1) ):
                     minStraightCardNum = x
             #リャンメン系を優先
-            for x in [2,3,4,5,6,7,8,9,10,11]:
+            for x in range(2,minStraightCardNum+1):
                 countLinkNum = 0
                 for i in xrange(keepNum):
-                    if( self._isExistNum(x+i) ):
+                    if( self._isExistNum(x+i) and self._isExistNum(x+i+1) ):
                         countLinkNum+=1
-                if( countLinkNum == keepNum ):
+                if( countLinkNum == keepNum-1 ):
                     minStraightCardNum = x
 
         if( countStraightCard13_1 >= keepNum ):
@@ -315,7 +313,6 @@ class Hands:
         holdCardList = [False,False,False,False,False]
         countSuit = self._countSuitFromHands()
         maxCountSuitKey = max(countSuit.items(), key=lambda x:x[1])[0]
-
         if(self._isExistJoker()):
             holdCardList[self._posExistJoker()] = True
 
@@ -328,7 +325,7 @@ class Hands:
         else:
             if( countSuit[maxCountSuitKey] == keepNum ):
                 for i in xrange(len(self.cardList)):
-                    if( max(countSuit)==self.cardList[i].suit ):
+                    if( maxCountSuitKey == self.cardList[i].suit ):
                         holdCardList[i] = True
 
                 return(holdCardList)
@@ -487,11 +484,11 @@ class Game():
 
 if __name__ == '__main__':
     cards = Card()
-    cards = [Card().setCard(u'h', 2), \
-            Card().setCard(u's', 3), \
-            Card().setCard(u's', 5), \
-            Card().setCard(u's', 7), \
-            Card().setCard(u'd', 10)]
+    cards = [Card().setCard(u'h', 1), \
+            Card().setCard(u's', 4), \
+            Card().setCard(u'a', 5), \
+            Card().setCard(u'd', 6), \
+            Card().setCard(u's', 9)]
     hands = Hands()
     hands.setHands(cards)
     print hands.showCards()
