@@ -22,7 +22,7 @@ class MyForm(QtGui.QMainWindow):
         self.isRunProgram = False
         self.pTimer = QtCore.QTimer()
         self.pTimer.timeout.connect(self.readPacket)
-        self.pTimer.setInterval(200)
+        self.pTimer.setInterval(50)
         self.pDump = packetDump_test.PacketDump()
         self.pDumpBefore = packetDump_test.PacketDump()
         self.hands = pokerHandsClass.Hands()
@@ -59,7 +59,7 @@ class MyForm(QtGui.QMainWindow):
             self.nDevice = False
             self.nDeviceNum = 0
             self.waitAdjust = 0
-            self.waitRandomRangeMax = 1000
+            self.waitRandomRangeMax = 0
 
     def selectDevice(self,iNum):
         if(iNum!=0):
@@ -83,12 +83,15 @@ class MyForm(QtGui.QMainWindow):
         if( self.waitRandomRangeMax==0 ):
             self.clickTimer.setInterval(wait)
             self.clickTimer.start()
+            self.pTimer.stop()
         else:
             self.clickTimer.setInterval( random.randrange(wait,wait+self.waitRandomRangeMax) )
             self.clickTimer.start()
+            self.pTimer.stop()
 
     def delayClick(self):
         print "Click!!!!"
+        self.pTimer.start()
         if( self.clickPosStr==u'High' ):
             operation.clickHigh()
         elif( self.clickPosStr==u'Low' ):
@@ -111,6 +114,7 @@ class MyForm(QtGui.QMainWindow):
         if(self.isRunProgram):
             self.isRunProgram = False
             self.ui.textEdit.append(u'プログラム停止')
+            self.clickTimer.stop()
             self.pTimer.stop()
             self.pDump.closePacketDump()
 
@@ -162,7 +166,7 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u"├Hands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'├Hold: '+self.hands.showHoldHandPosStr(0) )
                         self.ui.textEdit.append( u'└Reason: '+self.hands.showHandKeepingReason(0) )
-                        self._setWaitTime(2000+self.waitAdjust)
+                        self._setWaitTime(1500+self.waitAdjust)
                         self.clickPosStr=u'Hold'
                         return
 
@@ -171,7 +175,7 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Win' )
                         self.ui.textEdit.append( u"├Result: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        self._setWaitTime(2500+self.waitAdjust)
+                        self._setWaitTime(1500+self.waitAdjust)
                         self.clickPosStr=u'Yes'
                         return
 
@@ -180,35 +184,35 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Lose' )
                         self.ui.textEdit.append( u"├ResultHands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
-                        self._setWaitTime(2500+self.waitAdjust)
+                        self._setWaitTime(1500+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_HIGH'):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└High' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'High'
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_LOW'):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└Low' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'Low'
                         return
 
                     elif( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_HIGH'  ):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└High' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'High'
                         return
 
                     elif( gameStatus.get(u'status')==u'RESTART_DOUBLEUP_LOW' ):
                         self.ui.textEdit.append( u'DoubleUP' )
                         self.ui.textEdit.append( u'└Low' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'Low'
                         return
 
@@ -217,7 +221,7 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: YES' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'Yes'
                         return
 
@@ -226,41 +230,41 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: NO' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'No'
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_LOSE' ):
                         self.ui.textEdit.append( u'Lose' )
-                        self._setWaitTime(2000+self.waitAdjust)
+                        self._setWaitTime(1500+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_MAX' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
-                            self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            self._setWaitTime(1500+self.waitAdjust)
+                            self.ui.textEdit.append( u'Get '+ str(getMedal)+u' medals!' )
+                            self._setWaitTime(1000+self.waitAdjust)
                             self.clickPosStr=u'Start'
                             return
 
                     elif( gameStatus.get(u'status')==u'GET_MEDAL' ):
                         if( gameStatus.has_key(u'get') ):
                             getMedal = gameStatus.get(u'get')
-                            self.ui.textEdit.append( u'get '+ str(getMedal)+u' medals!' )
-                            self._setWaitTime(1500+self.waitAdjust)
+                            self.ui.textEdit.append( u'Get '+ str(getMedal)+u' medals!' )
+                            self._setWaitTime(1000+self.waitAdjust)
                             self.clickPosStr=u'Start'
                             return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_DRAW' ):
                         self.ui.textEdit.append( u'Draw' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_LOSE'):
                         self.ui.textEdit.append( u'Lose' )
-                        self._setWaitTime(1500+self.waitAdjust)
+                        self._setWaitTime(1000+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return
 
