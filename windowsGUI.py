@@ -19,22 +19,26 @@ class MyForm(QtGui.QMainWindow):
         QtGui.QWidget.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowIcon( QtGui.QIcon(u'icons/256x256.png') )
 
         self.isRunProgram = False
         self.getTotalMedal = 0
         self.countGame = 0
         self.countGameWin = 0
-        self.pTimer = QtCore.QTimer()
-        self.pTimer.timeout.connect(self.readPacket)
-        self.pTimer.setInterval(30)
+        self.packetTimer = QtCore.QTimer()
+        self.packetTimer.timeout.connect(self.readPacket)
+        self.packetTimer.setInterval(30)
         self.pDump = packetDump_test.PacketDump()
-        self.pDumpBefore = packetDump_test.PacketDump()
+        #self.pDumpBefore = packetDump_test.PacketDump()
         self.hands = pokerHandsClass.Hands()
         self.operatingStartTime = datetime.datetime.now()
-        self.oTimer = QtCore.QTimer()
-        self.oTimer.timeout.connect(self.operatingTimeUpdate)
-        self.oTimer.setInterval(10)
-        self.oTimer.start()
+        self.opeTimer = QtCore.QTimer()
+        self.opeTimer.timeout.connect(self.operatingTimeUpdate)
+        self.opeTimer.setInterval(10)
+        self.opeTimer.start()
+        self.toTimer = QtCore.QTimer()
+        self.toTimer.timeout.connect(self.packetTimeOut)
+        self.toTimer.setInterval(10000)
 
         self.clickTimer = QtCore.QTimer()
         self.clickTimer.timeout.connect(self.delayClick)
@@ -108,15 +112,15 @@ class MyForm(QtGui.QMainWindow):
         if( self.waitRandomRangeMax==0 ):
             self.clickTimer.setInterval(wait)
             self.clickTimer.start()
-            self.pTimer.stop()
+            self.packetTimer.stop()
         else:
             self.clickTimer.setInterval( random.randrange(wait,wait+self.waitRandomRangeMax) )
             self.clickTimer.start()
-            self.pTimer.stop()
+            self.packetTimer.stop()
 
     def delayClick(self):
         print "Click!!!!"
-        self.pTimer.start()
+        self.packetTimer.start()
         if( self.clickPosStr==u'High' ):
             operation.clickHigh()
         elif( self.clickPosStr==u'Low' ):
@@ -140,7 +144,8 @@ class MyForm(QtGui.QMainWindow):
             self.isRunProgram = False
             self.ui.textEdit.append(u'プログラム停止')
             self.clickTimer.stop()
-            self.pTimer.stop()
+            self.toTimer.stop()
+            self.packetTimer.stop()
             self.pDump.closePacketDump()
 
             self.ui.pushButtonRun.setText(u"実行")
@@ -152,21 +157,27 @@ class MyForm(QtGui.QMainWindow):
 
         self.ui.textEdit.append(u'プログラム開始')
         self.pDump.runPacketDump(self.nDevice)
-        self.pTimer.start()
+        self.packetTimer.start()
 
         self.isRunProgram = True
         self.ui.pushButtonRun.setText(u"停止")
+        self.toTimer.start()
 
+    def packetTimeOut(self):
+        self.ui.textEdit.append(u"タイムアウトしました")
+        operation.clickReload()
+        self.clickTimer.stop()
+        self.toTimer.start()
 
     def readPacket(self):
         res = self.pDump.getPacket()
         if(res==0):
-            self.ui.textEdit.append(u"タイムアウトしました")
-            operation.clickReload()
+            self.packetTimeOut()
             return
         if(res>0):
             gameData = self.pDump.packetToGameData()
             if( gameData ):
+                self.toTimer.start()
                 gameStatus = pokerReadGameData.readGameData(gameData)
                 if( gameStatus.has_key(u'status') ):
                     if( gameStatus.get(u'status')==u'ERROR_POP_FLAG_TRUE' ):
@@ -179,7 +190,7 @@ class MyForm(QtGui.QMainWindow):
                         gameStatus.get(u'status')==u'ANYDATA_LOADING' or \
                         gameStatus.get(u'status')==u'CHECK_PLAYING_OTHER_GAMES' or \
                         gameStatus.get(u'status')==u'WELCOME_CASINO' ):
-                        self.ui.textEdit.append( gameStatus.get(u'status') )
+                        #self.ui.textEdit.append( gameStatus.get(u'status') )
                         return
                     elif( gameStatus.get(u'status')==u'POKER_START' ):
                         self.ui.textEdit.append( u'Poker start' )
@@ -313,7 +324,11 @@ class MyForm(QtGui.QMainWindow):
                             self.ui.textEdit.append( u'ErrorNum:'+gameStatus.get(u'num') )
                             return
 
+
     def closeEvent(self, *args, **kwargs):
+        self.toTimer.stop()
+        self.packetTimer.stop()
+        self.opeTimer.stop()
         myHwnd = winxpgui.FindWindow(0,unicode(self.windowTitle()))
         left, top, right, bottom = win32gui.GetWindowRect(myHwnd)
         cLeft,cTop,cRight,cBottom = win32gui.GetClientRect(myHwnd)
