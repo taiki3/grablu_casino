@@ -2,13 +2,13 @@
 import sys
 from windowsForm import *
 import ConfigParser
-import packetDump_test
+from Casino import packetDumpClass
 import pokerReadGameData
 import pokerHandsClass
 import operation
 import win32gui
 import winxpgui
-from PyQt4.Qt import QRect
+from PyQt4.Qt import QRect, QTime
 import subprocess
 import random
 import os
@@ -28,21 +28,27 @@ class MyForm(QtGui.QMainWindow):
         self.packetTimer = QtCore.QTimer()
         self.packetTimer.timeout.connect(self.readPacket)
         self.packetTimer.setInterval(30)
-        self.pDump = packetDump_test.PacketDump()
-        #self.pDumpBefore = packetDump_test.PacketDump()
+        self.pDump = packetDumpClass.PacketDump()
         self.hands = pokerHandsClass.Hands()
         self.operatingStartTime = datetime.datetime.now()
         self.opeTimer = QtCore.QTimer()
         self.opeTimer.timeout.connect(self.operatingTimeUpdate)
         self.opeTimer.setInterval(10)
-        self.opeTimer.start()
         self.toTimer = QtCore.QTimer()
         self.toTimer.timeout.connect(self.packetTimeOut)
-        self.toTimer.setInterval(10000)
+        self.toTimer.setInterval(15*1000)
+
+        self.scheduleTimer = QtCore.QTimer()
+        self.scheduleTimer.setInterval(5*1*1000)
+        self.scheduleTimer.timeout.connect(self.scheduleRun)
+        self.scheduleTimer.start()
 
         self.clickTimer = QtCore.QTimer()
         self.clickTimer.timeout.connect(self.delayClick)
         self.clickPosStr = u""
+        self.reloadTimer = QtCore.QTimer()
+        self.reloadTimer.setInterval(60*60*1000)
+        self.reloadTimer.timeout.connect(self.reloadUpdate)
 
         deviceDict = self.pDump.getDeviceDict()
         for u in deviceDict:
@@ -67,6 +73,19 @@ class MyForm(QtGui.QMainWindow):
             self.waitRandomRangeMax = int( inifile.get(u'wait', u'randam_range') )
             self.ui.spinBox_waitRandom.setValue( self.waitRandomRangeMax )
             self.ui.verticalSlider_waitRandom.setValue( self.waitRandomRangeMax )
+            self.ui.lineEdit_GoalMedal.setText( inifile.get(u'goal',u'medal') )
+            StartTime1 = QTime( int(inifile.get(u'schedule',u'start1_h')) , \
+                                int(inifile.get((u'schedule'),u'start1_m')) )
+            self.ui.timeEdit_Start1.setTime( StartTime1 )
+            EndTime1 = QTime( int(inifile.get(u'schedule',u'end1_h')), \
+                              int(inifile.get((u'schedule'),u'end1_m')) )
+            self.ui.timeEdit_End1.setTime( EndTime1 )
+            StartTime2 = QTime( int(inifile.get(u'schedule',u'start2_h')), \
+                                int(inifile.get((u'schedule'),u'start2_m')) )
+            self.ui.timeEdit_Start2.setTime( StartTime2 )
+            EndTime2 = QTime( int(inifile.get(u'schedule',u'end2_h')), \
+                              int(inifile.get((u'schedule'),u'end2_m')) )
+            self.ui.timeEdit_End2.setTime( EndTime2 )
         else:
             self.nDevice = False
             self.nDeviceNum = 0
@@ -98,15 +117,51 @@ class MyForm(QtGui.QMainWindow):
           str( u"{0:02d}".format(operatingTimeSecond) ) + u" [HH:MM:SS]"
         self.ui.label_operatingTime.setText(oTimeStr)
         if(deltaTime.seconds!=0):
-            hWageText = str( u'%.2f' % (self.getTotalMedal/float(deltaTime.seconds)*3600) ) + u" [Medal/Hour]"
+            hWageText = str( u'%09.2f' % (self.getTotalMedal/float(deltaTime.seconds)*3600) ) + u" [Medal/Hour]"
             self.ui.label_hourlyWage.setText( hWageText )
         self.ui.label_getMedal.setText( str(self.getTotalMedal) + u" [Medal]" )
         self.ui.label_countGame.setText( str(self.countGame) + u" [ 回 ]")
         self.ui.label_countGameWin.setText( str(self.countGameWin) + u" [ 回 ]")
 
+    def scheduleRun(self):
+        nowTime = datetime.datetime.now()
+        if(not self.isRunProgram):
+            if( self.ui.checkBox_Schedule1.isChecked() ):
+                if( nowTime.hour == self.ui.timeEdit_Start1.time().hour() and \
+                    nowTime.minute == self.ui.timeEdit_Start1.time().minute() ):
+                        self.ui.textEdit.append(u'スケジュール1開始')
+                        self.runProgram()
+                        self.reloadClick()
+                        return
+
+            if( self.ui.checkBox_Schedule2.isChecked() ):
+                if( nowTime.hour == self.ui.timeEdit_Start2.time().hour() and \
+                    nowTime.minute == self.ui.timeEdit_Start2.time().minute() ):
+                        self.ui.textEdit.append(u'スケジュール2開始')
+                        self.runProgram()
+                        self.reloadClick()
+                        return
+        else:
+            if( self.ui.checkBox_Schedule1.isChecked() ):
+                if( nowTime.hour == self.ui.timeEdit_End1.time().hour() and \
+                    nowTime.minute == self.ui.timeEdit_End1.time().minute() ):
+                        self.ui.textEdit.append(u'スケジュール1終了')
+                        self.pauseProgram()
+                        return
+
+            if( self.ui.checkBox_Schedule2.isChecked() ):
+                if( nowTime.hour == self.ui.timeEdit_End2.time().hour() and \
+                    nowTime.minute == self.ui.timeEdit_End2.time().minute() ):
+                        self.ui.textEdit.append(u'スケジュール2終了')
+                        self.pauseProgram()
+                        return
+
     def shortcutGrablu(self):
-        cmd = u"start chrome.exe --profile-directory=Default --app-id=eablgejicbklomgaiclcolfilbkckngf"
-        subprocess.call(cmd, shell=True)
+        if( not operation.getGraBluWindow() ):
+            cmd = u"start chrome.exe --profile-directory=Default --app-id=eablgejicbklomgaiclcolfilbkckngf"
+            subprocess.call(cmd, shell=True)
+        else:
+            self.ui.textEdit.append(u"多重起動はできません")
 
     def _setWaitTime(self,wait):
         if( self.waitRandomRangeMax==0 ):
@@ -141,14 +196,11 @@ class MyForm(QtGui.QMainWindow):
 
     def runProgram(self):
         if(self.isRunProgram):
-            self.isRunProgram = False
-            self.ui.textEdit.append(u'プログラム停止')
-            self.clickTimer.stop()
-            self.toTimer.stop()
-            self.packetTimer.stop()
-            self.pDump.closePacketDump()
+            self.pauseProgram()
+            return
 
-            self.ui.pushButtonRun.setText(u"実行")
+        if(not operation.getGraBluWindow()):
+            self.ui.textEdit.append(u'グラブルが起動されていません')
             return
 
         if(self.nDeviceNum == 0):
@@ -158,16 +210,37 @@ class MyForm(QtGui.QMainWindow):
         self.ui.textEdit.append(u'プログラム開始')
         self.pDump.runPacketDump(self.nDevice)
         self.packetTimer.start()
+        self.opeTimer.start()
 
         self.isRunProgram = True
         self.ui.pushButtonRun.setText(u"停止")
         self.toTimer.start()
 
-    def packetTimeOut(self):
-        self.ui.textEdit.append(u"タイムアウトしました")
+    def reloadClick(self):
         operation.clickReload()
         self.clickTimer.stop()
         self.toTimer.start()
+
+    def reloadUpdate(self):
+        if( self.ui.checkBox_Reload.isChecked() ):
+            self.ui.textEdit.append(u"画像認証回避のためのリロード")
+            self.reloadClick()
+
+    def packetTimeOut(self):
+        self.ui.textEdit.append(u"タイムアウトしました")
+        self.reloadClick()
+
+    def pauseProgram(self):
+        self.isRunProgram = False
+        self.ui.textEdit.append(u'プログラム停止')
+        self.clickTimer.stop()
+        self.toTimer.stop()
+        self.opeTimer.stop()
+        self.packetTimer.stop()
+        self.pDump.closePacketDump()
+
+        self.ui.pushButtonRun.setText(u"実行")
+        return
 
     def readPacket(self):
         res = self.pDump.getPacket()
@@ -215,6 +288,15 @@ class MyForm(QtGui.QMainWindow):
                         self.ui.textEdit.append( u'Win' )
                         self.ui.textEdit.append( u"├Result: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
+                        self._setWaitTime(2500+self.waitAdjust)
+                        self.clickPosStr=u'Yes'
+                        self.countGameWin+=1
+                        return
+
+                    elif( gameStatus.get(u'status')==u'RESTART_GAME_WIN' ):
+                        self.hands = gameStatus.get(u'Hands')
+                        self.ui.textEdit.append( u'Win' )
+                        self.ui.textEdit.append( u"└Result: "+self.hands.showCardsStr() )
                         self._setWaitTime(2500+self.waitAdjust)
                         self.clickPosStr=u'Yes'
                         self.countGameWin+=1
@@ -288,6 +370,11 @@ class MyForm(QtGui.QMainWindow):
                             self._setWaitTime(1500+self.waitAdjust)
                             self.clickPosStr=u'Start'
                             self.getTotalMedal += getMedal
+                            haveMedal = int(gameStatus.get(u'have_medal'))
+                            if( self.ui.checkBox_GoalMedal.isChecked() ):
+                                if( haveMedal >= int(self.ui.lineEdit_GoalMedal.text()) ):
+                                    self.ui.textEdit.append( u'目標メダル数に到達しました' )
+                                    self.pauseProgram()
                             return
 
                     elif( gameStatus.get(u'status')==u'GET_MEDAL' ):
@@ -297,6 +384,11 @@ class MyForm(QtGui.QMainWindow):
                             self._setWaitTime(1500+self.waitAdjust)
                             self.clickPosStr=u'Start'
                             self.getTotalMedal += int(getMedal)
+                            haveMedal = int(gameStatus.get(u'have_medal'))
+                            if( self.ui.checkBox_GoalMedal.isChecked() ):
+                                if( haveMedal >= int(self.ui.lineEdit_GoalMedal.text()) ):
+                                    self.ui.textEdit.append( u'目標メダル数に到達しました' )
+                                    self.pauseProgram()
                             return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_DRAW' ):
@@ -307,6 +399,11 @@ class MyForm(QtGui.QMainWindow):
                             self._setWaitTime(1500+self.waitAdjust)
                             self.clickPosStr=u'Start'
                             self.getTotalMedal += int(getMedal)
+                            haveMedal = int(gameStatus.get(u'have_medal'))
+                            if( self.ui.checkBox_GoalMedal.isChecked() ):
+                                if( haveMedal >= int(self.ui.lineEdit_GoalMedal.text()) ):
+                                    self.ui.textEdit.append( u'目標メダル数に到達しました' )
+                                    self.pauseProgram()
                             return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_10ROUND_LOSE'):
@@ -343,6 +440,17 @@ class MyForm(QtGui.QMainWindow):
         inifile.add_section(u'wait')
         inifile.set(u'wait',u'adjust',str(self.waitAdjust))
         inifile.set(u'wait',u'randam_range',str(self.waitRandomRangeMax))
+        inifile.add_section(u'goal')
+        inifile.set(u'goal',u'medal',str(self.ui.lineEdit_GoalMedal.text()))
+        inifile.add_section(u'schedule')
+        inifile.set(u'schedule',u'start1_h',str(self.ui.timeEdit_Start1.time().hour()) )
+        inifile.set(u'schedule',u'start1_m',str(self.ui.timeEdit_Start1.time().minute()) )
+        inifile.set(u'schedule',u'end1_h',str(self.ui.timeEdit_End1.time().hour()) )
+        inifile.set(u'schedule',u'end1_m',str(self.ui.timeEdit_End1.time().minute()) )
+        inifile.set(u'schedule',u'start2_h',str(self.ui.timeEdit_Start2.time().hour()) )
+        inifile.set(u'schedule',u'start2_m',str(self.ui.timeEdit_Start2.time().minute()) )
+        inifile.set(u'schedule',u'end2_h',str(self.ui.timeEdit_End2.time().hour()) )
+        inifile.set(u'schedule',u'end2_m',str(self.ui.timeEdit_End2.time().minute()) )
 
         with open(u'config.ini', u'wb') as configfile:
             inifile.write(configfile)
