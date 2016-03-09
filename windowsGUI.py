@@ -2,7 +2,7 @@
 import sys
 from windowsForm import *
 import ConfigParser
-from Casino import packetDumpClass
+import packetDumpClass
 import pokerReadGameData
 import pokerHandsClass
 import operation
@@ -211,6 +211,7 @@ class MyForm(QtGui.QMainWindow):
         self.pDump.runPacketDump(self.nDevice)
         self.packetTimer.start()
         self.opeTimer.start()
+        self.reloadTimer.start()
 
         self.isRunProgram = True
         self.ui.pushButtonRun.setText(u"停止")
