@@ -31,6 +31,7 @@ class MyForm(QtGui.QMainWindow):
         self.pDump = packetDumpClass.PacketDump()
         self.hands = pokerHandsClass.Hands()
         self.operatingStartTime = datetime.datetime.now()
+        self.operatingTime = datetime.timedelta(0)
         self.opeTimer = QtCore.QTimer()
         self.opeTimer.timeout.connect(self.operatingTimeUpdate)
         self.opeTimer.setInterval(10)
@@ -39,7 +40,7 @@ class MyForm(QtGui.QMainWindow):
         self.toTimer.setInterval(15*1000)
 
         self.scheduleTimer = QtCore.QTimer()
-        self.scheduleTimer.setInterval(5*1*1000)
+        self.scheduleTimer.setInterval(10*1000)
         self.scheduleTimer.timeout.connect(self.scheduleRun)
         self.scheduleTimer.start()
 
@@ -47,7 +48,7 @@ class MyForm(QtGui.QMainWindow):
         self.clickTimer.timeout.connect(self.delayClick)
         self.clickPosStr = u""
         self.reloadTimer = QtCore.QTimer()
-        self.reloadTimer.setInterval(60*60*1000)
+        self.reloadTimer.setInterval(30*60*1000)
         self.reloadTimer.timeout.connect(self.reloadUpdate)
 
         deviceDict = self.pDump.getDeviceDict()
@@ -106,19 +107,28 @@ class MyForm(QtGui.QMainWindow):
     def changeWaitRandom(self):
         self.waitRandomRangeMax = self.ui.verticalSlider_waitRandom.value()
 
+    def clearInfo(self):
+        self.operatingStartTime = datetime.datetime.now()
+        self.operatingTime = datetime.timedelta(0)
+        self.getTotalMedal = 0
+        self.countGame = 0
+        self.countGameWin = 0
+        self.operatingTimeUpdate()
+
     def operatingTimeUpdate(self):
-        nowTime = datetime.datetime.now()
-        deltaTime = nowTime - self.operatingStartTime
-        operatingTimeHour = deltaTime.seconds /3600
-        operatingTimeMinute = (deltaTime.seconds%3600) /60
-        operatingTimeSecond = deltaTime.seconds%60
+        deltaTime = datetime.datetime.now() - self.operatingStartTime
+        operatingTimeHour = (deltaTime.seconds+self.operatingTime.seconds)/3600
+        operatingTimeMinute = ((deltaTime.seconds+self.operatingTime.seconds)%3600) /60
+        operatingTimeSecond = (deltaTime.seconds+self.operatingTime.seconds)%60
         oTimeStr = str( u"{0:02d}".format(operatingTimeHour) ) + u":" + \
           str( u"{0:02d}".format(operatingTimeMinute) ) + u":" + \
           str( u"{0:02d}".format(operatingTimeSecond) ) + u" [HH:MM:SS]"
         self.ui.label_operatingTime.setText(oTimeStr)
-        if(deltaTime.seconds!=0):
-            hWageText = str( u'%09.2f' % (self.getTotalMedal/float(deltaTime.seconds)*3600) ) + u" [Medal/Hour]"
+        if((deltaTime.seconds+self.operatingTime.seconds)!=0):
+            hWageText = str( u'%09.2f' % (self.getTotalMedal/float(deltaTime.seconds+self.operatingTime.seconds)*3600) ) + u" [Medal/Hour]"
             self.ui.label_hourlyWage.setText( hWageText )
+        else:
+            self.ui.label_hourlyWage.setText(u'000000.00 [Medal/Hour]')
         self.ui.label_getMedal.setText( str(self.getTotalMedal) + u" [Medal]" )
         self.ui.label_countGame.setText( str(self.countGame) + u" [ 回 ]")
         self.ui.label_countGameWin.setText( str(self.countGameWin) + u" [ 回 ]")
@@ -209,6 +219,7 @@ class MyForm(QtGui.QMainWindow):
 
         self.ui.textEdit.append(u'プログラム開始')
         self.pDump.runPacketDump(self.nDevice)
+        self.operatingStartTime = datetime.datetime.now()
         self.packetTimer.start()
         self.opeTimer.start()
         self.reloadTimer.start()
@@ -221,6 +232,7 @@ class MyForm(QtGui.QMainWindow):
         operation.clickReload()
         self.clickTimer.stop()
         self.toTimer.start()
+        self.packetTimer.start()
 
     def reloadUpdate(self):
         if( self.ui.checkBox_Reload.isChecked() ):
@@ -234,10 +246,12 @@ class MyForm(QtGui.QMainWindow):
     def pauseProgram(self):
         self.isRunProgram = False
         self.ui.textEdit.append(u'プログラム停止')
+        self.operatingTime = self.operatingTime + datetime.datetime.now() - self.operatingStartTime
         self.clickTimer.stop()
         self.toTimer.stop()
         self.opeTimer.stop()
         self.packetTimer.stop()
+        self.reloadTimer.stop()
         self.pDump.closePacketDump()
 
         self.ui.pushButtonRun.setText(u"実行")
