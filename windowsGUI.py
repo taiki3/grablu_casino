@@ -13,7 +13,6 @@ import subprocess
 import random
 import os
 import datetime
-from docutils.parsers.rst.directives import flag
 
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
