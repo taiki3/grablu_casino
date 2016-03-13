@@ -23,7 +23,7 @@ def clickOK():
     _clickCenterButton()
 
 def clickReload():
-    hWnd = _getGraBluWindow()
+    hWnd = getGraBluWindow()
     size = winxpgui.GetClientRect(hWnd)
     x = int(size[2]*0.75)
     y = 560
@@ -37,7 +37,7 @@ def sleepPlusRandom(wait,rangeMax):
         win32api.Sleep(waitTime)
 
 def clickHoldCard(changeFlag):
-    hWnd = _getGraBluWindow()
+    hWnd = getGraBluWindow()
     size = winxpgui.GetClientRect(hWnd)
     x = size[2]/2
     y = int(x * float(260)/float(175))
@@ -52,7 +52,7 @@ def _clickPos(hWnd,x,y):
     win32api.SendMessage(hWnd, win32con.WM_LBUTTONUP,0,XYpos)
 
 def _clickLeftButton():
-    hWnd = _getGraBluWindow()
+    hWnd = getGraBluWindow()
     size = winxpgui.GetClientRect(hWnd)
     center = size[2]/2
     x = center - int(center * float(50)/float(175))
@@ -60,7 +60,7 @@ def _clickLeftButton():
     _clickPos(hWnd,x,y)
 
 def _clickRightButton():
-    hWnd = _getGraBluWindow()
+    hWnd = getGraBluWindow()
     size = winxpgui.GetClientRect(hWnd)
     center = size[2]/2
     x = center + int(center * float(50)/float(175))
@@ -68,14 +68,14 @@ def _clickRightButton():
     _clickPos(hWnd,x,y)
 
 def _clickCenterButton():
-    hWnd = _getGraBluWindow()
+    hWnd = getGraBluWindow()
     size = winxpgui.GetClientRect(hWnd)
     center = size[2]/2
     x = center
     y = int(center * float(400)/float(175))
     _clickPos(hWnd,x,y)
 
-def _getGraBluWindow():
+def getGraBluWindow():
     title = u"グランブルーファンタジー[ChromeApps版]"
     hWnd = 0
 
@@ -83,8 +83,7 @@ def _getGraBluWindow():
         hWnd = winxpgui.FindWindow(0,title)
     except:
         print u"no window"
-        raise
-
+        return False
     return hWnd
 
 if __name__ == "__main__":

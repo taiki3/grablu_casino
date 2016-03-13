@@ -13,6 +13,7 @@ import subprocess
 import random
 import os
 import datetime
+from docutils.parsers.rst.directives import flag
 
 class MyForm(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -37,7 +38,7 @@ class MyForm(QtGui.QMainWindow):
         self.opeTimer.setInterval(10)
         self.toTimer = QtCore.QTimer()
         self.toTimer.timeout.connect(self.packetTimeOut)
-        self.toTimer.setInterval(15*1000)
+        self.toTimer.setInterval(15*60*1000)
 
         self.scheduleTimer = QtCore.QTimer()
         self.scheduleTimer.setInterval(10*1000)
@@ -48,8 +49,9 @@ class MyForm(QtGui.QMainWindow):
         self.clickTimer.timeout.connect(self.delayClick)
         self.clickPosStr = u""
         self.reloadTimer = QtCore.QTimer()
-        self.reloadTimer.setInterval(30*60*1000)
+        self.reloadTimer.setInterval(30*1000)
         self.reloadTimer.timeout.connect(self.reloadUpdate)
+        self.isNeedReload = False
 
         deviceDict = self.pDump.getDeviceDict()
         for u in deviceDict:
@@ -236,8 +238,7 @@ class MyForm(QtGui.QMainWindow):
 
     def reloadUpdate(self):
         if( self.ui.checkBox_Reload.isChecked() ):
-            self.ui.textEdit.append(u"画像認証回避のためのリロード")
-            self.reloadClick()
+            self.isNeedReload = True
 
     def packetTimeOut(self):
         self.ui.textEdit.append(u"タイムアウトしました")
@@ -281,6 +282,11 @@ class MyForm(QtGui.QMainWindow):
                         #self.ui.textEdit.append( gameStatus.get(u'status') )
                         return
                     elif( gameStatus.get(u'status')==u'POKER_START' ):
+                        if( self.isNeedReload ):
+                            self.ui.textEdit.append( u'画像認証回避のためのリロード2' )
+                            self.isNeedReload = False
+                            self.reloadClick()
+                            return
                         self.ui.textEdit.append( u'Poker start' )
                         self._setWaitTime(500)
                         self.clickPosStr = u'Start'
@@ -300,8 +306,9 @@ class MyForm(QtGui.QMainWindow):
 
                     elif( gameStatus.get(u'status')==u'GAME_WIN' ):
                         self.hands = gameStatus.get(u'Hands')
-                        self.ui.textEdit.append( u'Win' )
-                        self.ui.textEdit.append( u"├Result: "+self.hands.showCardsStr() )
+                        self.ui.textEdit.append( u'Result' )
+                        self.ui.textEdit.append( u"├Win" )
+                        self.ui.textEdit.append( u"├Hands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
                         self._setWaitTime(2500+self.waitAdjust)
                         self.clickPosStr=u'Yes'
@@ -310,8 +317,9 @@ class MyForm(QtGui.QMainWindow):
 
                     elif( gameStatus.get(u'status')==u'RESTART_GAME_WIN' ):
                         self.hands = gameStatus.get(u'Hands')
-                        self.ui.textEdit.append( u'Win' )
-                        self.ui.textEdit.append( u"└Result: "+self.hands.showCardsStr() )
+                        self.ui.textEdit.append( u'Result' )
+                        self.ui.textEdit.append( u"├Win")
+                        self.ui.textEdit.append( u"└Hands: "+self.hands.showCardsStr() )
                         self._setWaitTime(2500+self.waitAdjust)
                         self.clickPosStr=u'Yes'
                         self.countGameWin+=1
@@ -319,9 +327,14 @@ class MyForm(QtGui.QMainWindow):
 
                     elif( gameStatus.get(u'status')==u'GAME_LOSE' ):
                         self.hands = gameStatus.get(u'Hands')
-                        self.ui.textEdit.append( u'Lose' )
-                        self.ui.textEdit.append( u"├ResultHands: "+self.hands.showCardsStr() )
+                        self.ui.textEdit.append( u'Result' )
+                        self.ui.textEdit.append( u"├Lose" )
+                        self.ui.textEdit.append( u"├Hands: "+self.hands.showCardsStr() )
                         self.ui.textEdit.append( u'└Hand: '+gameStatus.get(u'hand_name' ) )
+                        if( self.isNeedReload ):
+                            self.ui.textEdit.append(u"画像認証回避のためのリロード")
+                            self.reloadClick()
+                            return
                         self._setWaitTime(2500+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return
@@ -356,7 +369,9 @@ class MyForm(QtGui.QMainWindow):
 
                     elif( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_YES' ):
                         doubleup = gameStatus.get(u'DoubleUp')
-                        self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
+                        self.ui.textEdit.append( u'DoubleUpResult' )
+                        self.ui.textEdit.append( u'├Win' )
+                        self.ui.textEdit.append( u'├Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: YES' )
                         self._setWaitTime(1500+self.waitAdjust)
@@ -365,7 +380,9 @@ class MyForm(QtGui.QMainWindow):
 
                     elif( gameStatus.get(u'status')==u'IS_NEXT_DOUBLEUP_NO' ):
                         doubleup = gameStatus.get(u'DoubleUp')
-                        self.ui.textEdit.append( u'Remains:'+str(doubleup.remainingRound-1)+ " "+ \
+                        self.ui.textEdit.append( u'DoubleUpResult' )
+                        self.ui.textEdit.append( u'├Win' )
+                        self.ui.textEdit.append( u'├Remains:'+str(doubleup.remainingRound-1)+ " "+ \
                                                  u'Next:'+doubleup.card2.showCardStr() )
                         self.ui.textEdit.append( u'└Continue: NO' )
                         self._setWaitTime(1500+self.waitAdjust)
@@ -373,7 +390,8 @@ class MyForm(QtGui.QMainWindow):
                         return
 
                     elif( gameStatus.get(u'status')==u'DOUBLEUP_LOSE' ):
-                        self.ui.textEdit.append( u'Lose' )
+                        self.ui.textEdit.append( u'DoubleUpResult' )
+                        self.ui.textEdit.append( u'└Lose' )
                         self._setWaitTime(2000+self.waitAdjust)
                         self.clickPosStr=u'Start'
                         return

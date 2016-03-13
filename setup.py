@@ -6,17 +6,24 @@ import py2exe
 option = {
     "compressed"    :    1    ,
     "optimize"      :    2    ,
-    "bundle_files"  :    1
+    "bundle_files"  :    2
 }
 
 setup(
     options = {
-        "py2exe"    :    option
+        "py2exe" : {"includes" : ["sip"]}
+
     },
 
-    console = [
-        {"script"   :    "packetDump.py"}
-    ],
+    windows = [{
+        'script' : 'windowsGUI.py',
+        'icon_resources' : [(1,"icon.ico")],
+        'dest_base' : 'GranBlueChondro'
+    }],
 
-    zipfile = None
+    zipfile = 'lib\libs.zip',
+    version = '0.9.2',
+    name = 'GranBlue Chondro',
+    description="GranBlue Casino Macro",
+    author="UNKNOWN",
 )

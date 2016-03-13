@@ -79,10 +79,12 @@ class DoubleUp:
             return False
 
 if __name__ == '__main__':
-    card1 = Card.Card(u'h', 1)
+    card1 = Card.Card()
+    card1.setCard(u'h', 1)
     doubleup = DoubleUp(card1,False,100,1)
     #print doubleup.judgeHiLow()
-    card2 = Card.Card(u'h', 8)
+    card2 = Card.Card()
+    card2.setCard(u'h', 8)
     doubleup.setCard2(card2)
     #print doubleup.isNextDoubleUp()
     #print ""
@@ -90,11 +92,12 @@ if __name__ == '__main__':
         print u"Num:",
         print num,
         print u"Ex:",
-        print doubleup._calcExpectedValueNum(num, 100, 10)
+        print doubleup._calcExpectedValueNum(num, 1500, 11)
 
     print u""
     for num in [2,3,4,5,6,7,8,9,10,11,12,13,1]:
-        card2 = Card.Card('s',num)
+        card2 = Card.Card()
+        card2.setCard('s',num)
         for reamRound in [10,9,8,7,6,5,4,3,2,1]:
             for pay in [100,200,400,800,1600,3200,6400,12800,25600,51200]:
                 doubleup = DoubleUp(1,card2,pay,reamRound)
